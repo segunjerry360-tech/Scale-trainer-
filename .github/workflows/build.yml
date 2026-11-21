@@ -1,0 +1,67 @@
+name: Build Scale Trainer APK
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Prepare web app
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Prepare custom launcher icon
+        run: |
+          test -f icon.png
+          mkdir -p assets
+          cp icon.png assets/icon.png
+          npx capacitor-assets generate --android
+          echo "Generated launcher icon files:"
+          find android/app/src/main/res -type f \( -name 'ic_launcher.png' -o -name 'ic_launcher.xml' \) -print
+          test -n "$(find android/app/src/main/res -type f \( -name 'ic_launcher.png' -o -name 'ic_launcher.xml' \) -print -quit)"
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Keep screen awake
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/java/com/scaletrainer/app/MainActivity.java')
+          p.parent.mkdir(parents=True, exist_ok=True)
+          p.write_text('''package com.scaletrainer.app;\n\nimport android.os.Bundle;\nimport android.view.WindowManager;\nimport com.getcapacitor.BridgeActivity;\n\npublic class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);\n    }\n}\n''')
+          PY
+
+      - name: Build debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Scale-Trainer-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          
