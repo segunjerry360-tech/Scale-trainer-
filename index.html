@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scale Trainer</title>
+<style>
+:root{--bg:#eceff3;--card:#fff;--fg:#14181f;--mut:#5d6675;--line:#d3d9e2;--acc:#2347c5;--onacc:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10131a;--card:#1a1f2a;--fg:#eef1f7;--mut:#98a2b5;--line:#2c3444;--acc:#8fa8ff;--onacc:#10131a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10131a;--card:#1a1f2a;--fg:#eef1f7;--mut:#98a2b5;--line:#2c3444;--acc:#8fa8ff;--onacc:#10131a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{touch-action:manipulation;margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:520px;margin:0 auto;padding:14px 14px 28px}
+h1{font-size:20px;margin:2px 0 12px;letter-spacing:-.01em}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+label{display:block;font-size:12px;color:var(--mut);margin-bottom:3px}
+select{width:100%;padding:10px 8px;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px}
+.board{background:#2b1810;border-radius:12px;padding:6px 0 2px;overflow-x:auto;margin-top:4px}
+.board svg{display:block}
+.now{display:flex;align-items:baseline;justify-content:space-between;margin:14px 2px 4px}
+.big{font-size:64px;font-weight:800;line-height:1;letter-spacing:-.03em;min-width:2.2ch}
+.big small{font-size:22px;font-weight:600;color:var(--mut);margin-left:8px;letter-spacing:0}
+.nx{font-size:15px;color:var(--mut);text-align:right}
+.nx b{color:var(--fg);font-size:20px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;background:var(--acc);width:0}
+.cnt{font-size:13px;color:var(--mut);margin-bottom:12px}
+.tr{display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px;margin-bottom:14px}
+button{font:inherit;font-weight:700;padding:16px 8px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+button.go{background:var(--acc);color:var(--onacc);border-color:var(--acc)}
+button:disabled{opacity:.4}
+[hidden]{display:none!important}
+textarea{width:100%;padding:10px 8px;font:12.5px/1.35 ui-monospace,Menlo,Consolas,monospace;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px;margin:0 0 8px;resize:vertical}
+input[type=text]{width:100%;padding:10px 8px;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px}
+input[type=range]{width:100%}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+  .set{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.bpm{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bpm input{flex:1}
+.bpm output{font-weight:700;min-width:7ch;text-align:right;font-variant-numeric:tabular-nums}
+.set .row{margin:0 0 10px}
+.chk{display:flex;gap:18px}
+.chk label{display:flex;align-items:center;gap:6px;color:var(--fg);font-size:15px;margin:0}
+.tmr{padding:10px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);font-weight:700;font-variant-numeric:tabular-nums;text-align:center}
+.tmr.warn{color:#e0483a}
+.kbar{margin:6px 0 10px}
+.kk{font-size:24px;font-weight:800;letter-spacing:-.01em}
+.kx{font-size:15px;color:var(--mut);min-height:1.4em;margin:2px 0}
+.kch{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.kch button{padding:8px 12px;font-size:15px;border-radius:999px;border:2px solid var(--line)}
+.kch button.on{background:var(--acc);color:var(--onacc);border-color:var(--acc)}
+.kch button.nx{border:2px dashed var(--acc)}
+.krate{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0 4px}
+.krate button{padding:12px 6px;font-size:15px}
+[hidden]{display:none!important}
+#lk{position:fixed;top:0;right:0;bottom:0;left:0;z-index:50;background:#000;color:#9aa3b2;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;touch-action:none;user-select:none;-webkit-user-select:none}
+#lk.on{display:flex}
+#lk .t{font-size:44px;font-weight:700;font-variant-numeric:tabular-nums;color:#c7cdd9;min-height:1.2em}
+#lkn{font-size:72px;font-weight:800;color:#d7dce6;letter-spacing:-.02em;min-height:1em}
+#lk button{padding:18px 28px;font-size:18px;background:#1b1b1b;color:#ddd;border-color:#444;touch-action:none}
+.kk{word-break:break-word}
+input[type=number]{width:100%;padding:8px 6px;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px}
+.pgc{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
+.pgh{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px}
+.pgh b{font-size:15px}
+.pgh button{padding:6px 9px;font-size:14px;border-radius:8px}
+.pgr{display:grid;grid-template-columns:2fr 1fr 1fr;gap:6px;margin-bottom:6px}
+.pgs{font-size:13px;color:var(--mut)}
+.pgs button{padding:6px 9px;font-size:13px;margin-top:4px;border-radius:8px}
+#atn .atb{display:block;width:100%;text-align:left;margin:0 0 8px;padding:10px;font-size:14px;font-weight:600;border-radius:10px}
+#atn .atb small{display:block;font-weight:400;color:var(--mut);margin-top:3px;font-size:12.5px;line-height:1.35}
+#pgc .atb{display:block;width:100%;text-align:left;margin:0 0 6px;padding:9px 10px;font-size:14px;font-weight:600;border-radius:10px}
+#pgc .atb[aria-pressed=true]{border-color:#3fb6a8;box-shadow:0 0 0 2px #3fb6a8 inset}
+#atn .atb[aria-pressed=true]{border-color:#3fb6a8;box-shadow:0 0 0 2px #3fb6a8 inset}
+</style>
+</head>
+<body>
+<main>
+<h1>Scale Trainer</h1>
+  <div class="row">
+<div><label for="root">Key</label><select id="root"></select></div>
+<div><label for="scale">Scale</label><select id="scale"></select></div>
+</div>
+<div class="row">
+<div><label for="nps">Notes per string</label><select id="nps"><option value="auto">Auto (spread over neck)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
+<div><label for="frets">Frets on guitar</label><select id="frets"><option value="21">21</option><option value="22" selected>22</option><option value="24">24</option></select></div>
+</div>
+<div class="row"><div style="grid-column:1/-1"><label for="seq">Sequence</label><select id="seq"></select></div></div>
+<div class="row" id="cuRow" hidden><div style="grid-column:1/-1"><label for="cu">Your sequence (scale degrees, like 1 3 2 4)</label><input id="cu" type="text" value="1 3 2 4" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="cuMsg"><div class="cnt" id="cuMsg" style="margin:4px 0 0"></div></div></div>
+<div class="row" id="cmRow" hidden><div style="grid-column:1/-1"><label for="cum">How your sequence plays</label><select id="cum"><option value="slide" selected>Slide up one step each time</option><option value="once">Play once, as written</option></select></div></div>
+<div class="row" id="pmRow3" hidden><div style="grid-column:1/-1"><label for="pm3">Order of the 3 notes</label><select id="pm3"></select></div></div>
+<div class="row" id="pmRow4" hidden><div style="grid-column:1/-1"><label for="pm4">Order of the 4 notes</label><select id="pm4"></select></div></div>
+<div class="cnt" id="ptm" style="margin:0 0 6px"></div>
+<div class="row"><div><label for="rn">Repeat each note</label><select id="rn"><option value="1">1 (once)</option><option value="2">2 times</option><option value="3">3 times</option><option value="4">4 times</option><option value="6">6 times</option><option value="8">8 times</option></select></div><div><label for="rg">Repeat each group</label><select id="rg"><option value="1">1 (once)</option><option value="2">2 times</option><option value="3">3 times</option><option value="4">4 times</option></select></div></div>
+  <div class="kbar" id="bbar" hidden><div class="kk" id="bk1"></div><div class="kx" id="bk2"></div><div class="kch" id="bch"></div></div>
+<div class="kbar" id="kbar" hidden><div class="kk" id="kk"></div><div class="kx" id="kx"></div><div class="kch" id="kch"></div><div class="krate"><button id="kok" type="button">Clean</button><button id="kno" type="button">Again</button><button id="khd" type="button">Mark hard</button></div><div class="cnt" id="kst" style="margin:4px 0 0"></div></div>
+<div class="board" id="bd"><svg id="fb" role="img" aria-label="Fretboard"></svg></div>
+<div class="now"><div class="big" id="cur">–</div><div class="nx">Next<br><b id="nxt">–</b></div></div>
+<div class="bar"><i id="pr"></i></div>
+<div class="cnt" id="cnt"></div>
+<div class="kbar" id="pgbar" hidden><div class="kk" id="pg1"></div><div class="kx" id="pg2"></div><div class="kx" id="pg3"></div></div>
+<div class="tr">
+<button id="prev" aria-label="Previous note">Back</button>
+<button id="play" class="go">Play</button>
+<button id="next" aria-label="Next note">Next</button>
+</div>
+<div class="row" style="grid-template-columns:auto 1fr;align-items:center;margin-bottom:14px"><button id="lpb" type="button" style="padding:12px 16px">Set loop</button><div class="cnt" id="lp" style="margin:0"></div></div>
+<div class="row"><div><label for="lps">Loop plays</label><select id="lps"><option value="sec">Everything from A to B</option><option value="two">Only note A and note B</option></select></div><div class="cnt" style="margin:0;align-self:end">Two-note drill: Set loop, tap two notes, choose "Only note A and note B".</div></div>
+<div class="row" style="margin-bottom:14px">
+<div><label for="timer">Practice timer</label><select id="timer"><option value="0">Off</option><option value="1">1 min</option><option value="2">2 min</option><option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="20">20 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option></select></div>
+<div><label>Time left</label><div id="tleft" class="tmr">—</div></div>
+</div>
+<details class="set" id="atl"><summary>Key Atlas</summary>
+<div class="row"><div><label for="shn">Scale notes outside the path</label><select id="shn"><option value="on" selected>Show (faded)</option><option value="off">Hide</option></select></div><div><label for="shl">Label the faded notes</label><select id="shl"><option value="none" selected>No labels</option><option value="name">Note names</option><option value="deg">Scale degrees</option></select></div></div>
+<div class="row"><div style="grid-column:1/-1"><label for="ats">Look at octaves on</label><select id="ats"></select></div></div>
+<div class="cnt" id="atx" style="margin:0 0 8px"></div>
+<div id="atn"></div>
+<div class="cnt" style="margin:0">Tap an octave to circle its notes on the fretboard. This only changes what you see. It never changes what is playing.</div>
+</details>
+<details class="set" id="cvd" open><summary>Coverage</summary>
+<div class="row"><div><label for="cvs">Strings to practise on</label><select id="cvs"></select></div><div><label for="cvo">Octaves (root to root)</label><select id="cvo"><option value="all" selected>All that fit</option><option value="0-0">Octave 1</option><option value="1-1">Octave 2</option><option value="2-2">Octave 3</option><option value="0-1">Octaves 1 to 2</option><option value="1-2">Octaves 2 to 3</option><option value="0-2">Octaves 1 to 3</option></select></div></div>
+<div class="row"><div style="grid-column:1/-1"><label for="oj">Where octaves meet</label><select id="oj"><option value="auto" selected>As before</option><option value="closed">Closed: root at both ends of every octave</option><option value="chained">Chained: octaves run on, shared root once</option></select></div></div>
+<div class="cnt" id="cvm" style="margin:0"></div>
+<div class="cnt" id="ojm" style="margin:6px 0 0"></div>
+</details>
+<details class="set" id="pgd" open><summary>Path</summary>
+<div class="row"><div><label for="pp">Path style</label><select id="pp"><option value="auto" selected>App's own spread</option><option value="low">Low-string dominant</option><option value="high">High-string dominant</option><option value="bal">Balanced</option><option value="mix">Mixed / alternating</option></select></div><div><label for="px">Widest stretch</label><select id="px"><option value="any" selected>Any</option><option value="3">3 frets</option><option value="4">4 frets</option><option value="5">5 frets</option><option value="6">6 frets</option></select></div></div>
+<input type="hidden" id="pl" value=""><input type="hidden" id="pi" value="0">
+<div class="row" style="grid-template-columns:repeat(4,1fr)"><button id="pgpv2" type="button">Back</button><button id="pgnx2" type="button">Next</button><button id="pgrn" type="button">Random</button><button id="pglk" type="button">Lock</button></div>
+<div class="cnt" id="pgi" style="margin:0 0 8px"></div>
+<div id="pgc"></div>
+<div class="row"><div style="grid-column:1/-1"><label for="psv">Saved paths</label><select id="psv"></select></div></div>
+<div class="row" style="grid-template-columns:repeat(3,1fr)"><button id="pgsa" type="button">Save this</button><button id="pgus" type="button">Use saved</button><button id="pgde" type="button">Delete saved</button></div>
+<div class="cnt" id="pgm" style="margin:0"></div>
+</details>
+<details class="set" open><summary>Boxes</summary>
+<div class="row"><div><label for="bm">View</label><select id="bm"><option value="box" selected>Boxes</option><option value="route">Whole-neck route (key cycles work here)</option></select></div><div><label for="bw">Box width</label><select id="bw"><option value="auto">Auto</option><option value="4">4 frets</option><option value="5">5 frets</option><option value="6">6 frets</option></select></div></div>
+<div class="row"><div><label for="bo">Practice order</label><select id="bo"><option value="stay" selected>Stay in one box</option><option value="up">Climb the neck (pivot links)</option><option value="down">Come down the neck</option><option value="ud">Up and down</option><option value="mix">Random mix</option><option value="far">Far jumps</option><option value="pair">Two boxes (tap them)</option></select></div><div><label for="bxs">Box (when staying)</label><select id="bxs"><option value="0">Box 1</option><option value="1">Box 2</option><option value="2">Box 3</option><option value="3">Box 4</option><option value="4">Box 5</option><option value="5">Box 6</option><option value="6">Box 7</option><option value="7">Box 8</option><option value="8">Box 9</option><option value="9">Box 10</option><option value="10">Box 11</option><option value="11">Box 12</option><option value="12">Box 13</option><option value="13">Box 14</option></select></div></div>
+<div class="row"><div><label for="bsk">String skipping</label><select id="bsk"><option value="off">Off (use the sequence)</option><option value="0">Every other string (1-3, then up)</option><option value="1">Skip pattern 1-3-2-4</option><option value="2">Wide skip (1-4)</option><option value="3">Skip 1-3-5</option><option value="4">Pedal on the low string</option><option value="5">Skip with a step (1-3-2-3)</option><option value="6">Skip down (4-2-3-1)</option><option value="7">Pairs on skipped strings</option></select></div><div><label for="bl">Time per box</label><select id="bl"><option value="l1" selected>1 pass</option><option value="l2">2 passes</option><option value="l4">4 passes</option><option value="b2">2 beats</option><option value="b4">4 beats</option><option value="b8">8 beats</option><option value="b16">16 beats</option></select></div></div>
+<div class="cnt" style="margin:0">Between boxes the app links them: a shared pivot note, or a slide along one string when the boxes are far apart.</div>
+</details>
+<details class="set" open><summary>Rhythm and subdivisions</summary>
+<div class="row"><div><label for="sm">Subdivision mode</label><select id="sm"><option value="fix">One subdivision (Notes per beat)</option><option value="beat">Change every beat (cycle the list)</option><option value="bar">Change every bar (cycle the list)</option><option value="rnd">Random every beat</option></select></div><div><label for="sw">Swing (for eighth notes)</label><select id="sw"><option value="0">Straight</option><option value="0.58">Light</option><option value="0.667">Triplet swing</option><option value="0.75">Hard</option></select></div></div>
+<div class="row"><div><label for="sl">Subdivision list (numbers 1 to 8 per beat)</label><input id="sl" type="text" value="1 2 3 4" autocomplete="off" autocapitalize="off" spellcheck="false"></div><div><label for="slp">List presets</label><select id="slp"><option value="">Choose…</option><option value="1 2 3 4">1 2 3 4 ladder</option><option value="3 4 5 6">3 4 5 6</option><option value="5 6 7 8">5 6 7 8</option><option value="3 5 7">3 5 7 (odd)</option><option value="2 3">2 3 (swing feel)</option><option value="4 3 4 5">4 3 4 5</option></select></div></div>
+<div class="cnt" id="sdv" style="font-weight:700;color:var(--fg);margin:0"></div>
+</details>
+<details class="set" open><summary>Practice program</summary>
+<div class="row"><div><label for="pgs">Saved programs</label><select id="pgs"><option value="">New program</option></select></div><div><label for="pgn">Name</label><input id="pgn" type="text" placeholder="Name this program" autocomplete="off"></div></div>
+<div id="pgl"></div>
+<div class="row"><button id="pgad" type="button">Add drill from current settings</button><button id="pgar" type="button">Add rest</button></div>
+<div class="row"><div><label for="pgr">Repeat the program</label><select id="pgr"><option value="1">Once</option><option value="2">2 times</option><option value="3">3 times</option><option value="4">4 times</option><option value="5">5 times</option><option value="10">10 times</option><option value="0">Until I stop</option></select></div><div class="cnt" style="align-self:center;margin:0">Total: <b id="pgt">0:00</b></div></div>
+<div class="row" style="display:grid;grid-template-columns:repeat(3,1fr)"><button id="pgsv" type="button">Save program</button><button id="pgdu" type="button">Duplicate</button><button id="pgdl" type="button">Delete program</button></div>
+<div class="cnt" id="pgxm" style="margin:0 0 6px"></div>
+<details class="set" id="pgxd"><summary>Examples, export and import</summary>
+<div class="row"><div style="grid-column:1/-1"><label for="pgex">Example programs</label><select id="pgex"><option value="">Choose an example…</option></select></div></div>
+<div class="row"><div><label for="pgxs">Export</label><select id="pgxs"><option value="one">This program</option><option value="all">All my programs and paths</option><option value="ex">The current exercise</option><option value="paths">My saved paths</option></select></div><button id="pgxb" type="button">Export</button></div>
+<textarea id="pgxt" rows="6" spellcheck="false" autocomplete="off" placeholder="Exported text appears here. To import, paste text here, or choose a file below."></textarea>
+<div class="row" style="grid-template-columns:repeat(2,1fr)"><button id="pgxc" type="button">Copy the text</button><button id="pgxi" type="button">Import the text</button></div>
+<div class="row"><div style="grid-column:1/-1"><label for="pgxf">Import from a file</label><input id="pgxf" type="file" accept=".json,.txt,application/json,text/plain"></div></div>
+</details>
+<div class="row"><div><label for="pgtr">When a step ends</label><select id="pgtr"><option value="restart" selected>Restart the beat (as before)</option><option value="bar">Keep the beat going: change at the next bar</option><option value="beat13">Keep the beat going: change at beat 1 or 3</option><option value="now">Keep the beat going: change right away</option></select></div><div><label for="pgci">Count-in</label><select id="pgci"><option value="0" selected>None</option><option value="1">1 bar</option><option value="2">2 bars</option></select></div></div>
+<div class="row"><div style="grid-column:1/-1"><label for="pgo">Order each round</label><select id="pgo"><option value="as" selected>As written</option><option value="shuf">Shuffled</option></select></div></div>
+<div class="cnt" id="pgw" style="margin:0 0 6px"></div>
+<div class="row"><button id="pgrun" class="go" type="button">Start program</button><button id="pgpz" type="button">Pause</button></div>
+<div class="row"><button id="pgpv" type="button">Previous step</button><button id="pgnx" type="button">Skip step</button></div>
+<div class="cnt" style="margin:0">Each drill remembers everything on screen when you add it: a two-note loop, a scale in one box, a scale through several keys, a phrase. It also has its own time and its own start and end tempo (the tempo glides, up or down). Tap Use current settings to change what a drill plays. A program replaces the single practice timer while it runs.</div>
+</details>
+<details class="set" open><summary>Phrases and riffs</summary>
+<div class="row"><div style="grid-column:1/-1"><label for="ph">Phrase</label><select id="ph"><option value="off">Off</option><option value="0">Ode to Joy (Beethoven)</option><option value="1">Twinkle, Twinkle (French folk tune)</option><option value="2">Frere Jacques</option><option value="3">Mary Had a Little Lamb</option><option value="4">Hot Cross Buns</option><option value="5">Pentatonic climb (original)</option><option value="6">Rising thirds run (original)</option><option value="7">Octave leap motif (original)</option><option value="8">Blues turn (original)</option><option value="gen">Generated (builds a new phrase)</option><option value="own">My own phrase (type it)</option></select></div></div>
+<div class="row" id="phrow" hidden><div style="grid-column:1/-1"><label for="phc">Your phrase (numbers are scale steps: 1 is the key note, 8 is the next octave up; - holds the note; ’ after a number goes up an octave, _ goes down)</label><input id="phc" type="text" value="1 2 3 5 - 3 2 1 - -" autocomplete="off" autocapitalize="off" spellcheck="false"></div></div>
+<div class="row"><button id="phn" type="button" hidden>New variation</button><div class="cnt" id="phi" style="margin:0;align-self:center"></div></div>
+<div class="cnt" style="margin:0">Phrases play inside the current box, and follow your box and key settings. While a phrase is on, the sequence and string-skipping choices are not used. The one-note-per-slot length follows the Notes per beat setting.</div>
+</details>
+<div class="row" style="align-items:center"><button id="lock" type="button" style="padding:12px">Lock screen</button><label style="display:flex;align-items:center;gap:6px;color:var(--fg);font-size:14px;margin:0"><input type="checkbox" id="bgp" checked>Keep playing when phone locks</label></div>
+<details class="set" open><summary>Key changes</summary>
+<div class="row"><div style="grid-column:1/-1"><label for="kpre">Preset</label><select id="kpre"><option value="">Choose a key-change preset…</option></select></div></div>
+<div class="row"><div><label for="kc">Key cycle</label><select id="kc"><option value="off">Off (one key)</option><option value="m3d">Major thirds down (Giant Steps)</option><option value="m3u">Major thirds up</option><option value="mn3">Minor thirds up</option><option value="mn3d">Minor thirds down</option><option value="wt">Whole tones up</option><option value="wtd">Whole tones down</option><option value="p4">Fourths up</option><option value="p5">Fifths up (circle)</option><option value="cu">Chromatic up</option><option value="cd">Chromatic down</option><option value="cust">Your own steps…</option><option value="rnd">Random keys</option></select></div><div><label for="kn">Keys in cycle</label><select id="kn"><option value="all">Whole cycle</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="12">12</option></select></div></div>
+<div class="row" id="kcuRow" hidden><div style="grid-column:1/-1"><label for="kcu">Steps between keys, in semitones</label><input id="kcu" type="text" value="1 1 1 1 1 1" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="kcum"></div></div>
+<div class="cnt" id="kcum" style="margin:0 0 6px"></div>
+<div class="cnt" id="kpx" style="margin:0 0 6px"></div>
+<div class="row"><div><label for="kl">Change key</label><select id="kl"><option value="l1">After 1 lap</option><option value="l2">After 2 laps</option><option value="l4">After 4 laps</option><option value="b2">After 2 beats</option><option value="b4">After 4 beats</option><option value="b8">After 8 beats</option><option value="b16">After 16 beats</option></select></div><div><label for="ko">Order</label><select id="ko"><option value="fix">Fixed</option><option value="shuf">Shuffle each cycle</option></select></div></div>
+<div class="row"><div><label for="kq">Show next key</label><select id="kq"><option value="last">Near the change</option><option value="always">Always</option><option value="blind">Never (blind)</option></select></div><div><label for="kd">Practice</label><select id="kd"><option value="full">Full cycle</option><option value="one">One transition (tap two keys)</option><option value="hard">My hardest transition</option></select></div></div>
+<div class="row"><div><label for="kt">Tempo ladder</label><select id="kt"><option value="0">Off</option><option value="2">+2 BPM per 2 clean</option><option value="4">+4 BPM per 2 clean</option><option value="8">+8 BPM per 2 clean</option></select></div><div><label for="kr">Range</label><select id="kr"><option value="0">Whole neck</option><option value="2">2 octaves (position)</option><option value="1">1 octave (position)</option></select></div></div>
+<div class="row"><button id="kcl" type="button" style="padding:10px">Clear hard marks</button><div class="cnt" style="margin:0;align-self:center">Clean/Again counts your own judgement. The app cannot hear you.</div></div>
+</details>
+  <div class="set">
+<div class="bpm"><label for="bpm" style="margin:0">Tempo</label><input id="bpm" type="range" min="30" max="300" value="80"><output id="bv">80 BPM</output></div>
+<div class="row">
+<div><label for="mode">Mode</label><select id="mode"><option value="auto">Follow tempo</option><option value="tap">Tap to step</option></select></div>
+<div><label for="dir">Direction</label><select id="dir"><option value="up">Low to high</option><option value="down">High to low</option><option value="ud">Up and down</option></select></div>
+</div>
+<div class="row">
+<div><label for="sub">Notes per beat</label><select id="sub"><option value="1">1 (quarter)</option><option value="2" selected>2 (eighth)</option><option value="3">3 (triplet)</option><option value="4">4 (sixteenth)</option><option value="5">5 (quintuplet)</option><option value="6">6 (sextuplet)</option><option value="7">7 (septuplet)</option><option value="8">8 (thirty-second)</option></select></div>
+<div><label for="bf">Bar fit</label><select id="bf"><option value="cont" selected>Continuous (as before)</option><option value="pad">Pad with rests to the bar</option><option value="cut">Cut at the bar line</option></select></div>
+</div>
+<div class="cnt" id="bfm" style="margin:0 0 6px"></div>
+<div class="row"><div><label for="drone">Drone chord</label><select id="drone"><option value="off">Off</option><option value="root">Root</option><option value="fifth">Root + fifth</option><option value="triad">Triad</option><option value="four">With 7th or 6th</option></select></div><div><label for="dv">Drone volume</label><input id="dv" type="range" min="0" max="100" value="40"></div></div>
+<div class="cnt" id="dn" style="margin:-4px 0 10px;font-size:14px;font-weight:600;color:var(--fg)"></div>
+<div class="row"><div><label for="bass">Bass</label><select id="bass"><option value="off" selected>Off</option><option value="bar">Root, once a bar</option><option value="b13">Root on beats 1 and 3</option><option value="rf">Root, then fifth (beats 1 and 3)</option><option value="beat">Root on every beat</option></select></div><div><label for="bvol">Bass volume</label><input id="bvol" type="range" min="0" max="100" value="50"></div></div>
+<div class="row"><div style="grid-column:1/-1"><label for="bkc">Drone and bass follow a key change</label><select id="bkc"><option value="note" selected>With the first note (as before)</option><option value="bar">At the next bar line</option><option value="beat13">At the next beat 1 or 3</option></select></div></div>
+<div class="cnt" id="bkm" style="margin:0 0 8px"></div>
+<div class="chk"><label><input type="checkbox" id="tone" checked>Play notes</label><label><input type="checkbox" id="click" checked>Click</label></div>
+</div>
+</main>
+<div id="lk" role="dialog" aria-label="Screen locked"><div class="t" id="lkt"></div><div id="lkc" style="font-size:24px"></div><div id="lkn"></div><button id="lku" type="button">Hold to unlock</button><div style="font-size:14px">Screen locked. Playback continues. Hold the button for a moment to unlock.</div></div>
+<script>
+var NN=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+var IV=['R','b2','2','b3','3','4','b5','5','b6','6','b7','7'];
+var PE=(function(){
+  /* PITCH ENGINE: the only place that turns strings, frets, notes and pitch classes into each other.
+     Notes are MIDI numbers (E2 = 40). Pitch class = note mod 12, 0 = C. */
+  var E={open:[40,45,50,55,59,64]};            /* standard tuning, string 0 = low E */
+  E.pc=function(m){return ((m%12)+12)%12};
+  E.name=function(m){return NN[E.pc(m)]};
+  E.midi=function(s,f){return E.open[s]+f};
+  E.fret=function(s,m){return m-E.open[s]};
+  E.top=function(frets){return E.open[E.open.length-1]+frets};
+  E.freq=function(m){return 440*Math.pow(2,(m-69)/12)};
+  E.interval=function(m,rootPc){return E.pc(m-rootPc)};
+  E.degree=function(m,rootPc,iv){var r=E.interval(m,rootPc);for(var i=0;i<iv.length;i++)if(E.pc(iv[i])==r)return i+1;return 0};
+  E.positions=function(m,frets,s0,s1){var o=[],a=s0==null?0:s0,b=s1==null?E.open.length-1:s1;for(var s=a;s<=b;s++){var f=m-E.open[s];if(f>=0&&f<=frets)o.push({s:s,f:f})}return o};
+  E.label=function(m){return E.name(m)+(Math.floor(m/12)-1)};
+  /* complete root-to-root octaves that fit on strings s0..s1 (default: all strings). Adjacent strings overlap, so the group covers one continuous pitch range. */
+  E.stacks=function(rootPc,frets,s0,s1){var a=s0==null?0:s0,b=s1==null?E.open.length-1:s1,o=[],lo0=E.open[a],hi0=E.open[b]+frets;for(var m=lo0;m+12<=hi0;m++)if(E.pc(m)==E.pc(rootPc))o.push({lo:m,hi:m+12});return o};
+  /* every scale note from lo to hi with its positions on strings s0..s1 and its degree */
+  E.range=function(lo,hi,rootPc,iv,frets,s0,s1){var o=[];for(var m=lo;m<=hi;m++){var d=E.degree(m,rootPc,iv);if(d)o.push({m:m,d:d,pos:E.positions(m,frets,s0,s1)})}return o};
+  return E;
+})();
+  var SC={'Major':[0,2,4,5,7,9,11],'Natural minor':[0,2,3,5,7,8,10],'Harmonic minor':[0,2,3,5,7,8,11],'Melodic minor':[0,2,3,5,7,9,11],'Major pentatonic':[0,2,4,7,9],'Minor pentatonic':[0,3,5,7,10],'Blues':[0,3,5,6,7,10],'Dorian':[0,2,3,5,7,9,10],'Phrygian':[0,1,3,5,7,8,10],'Lydian':[0,2,4,6,7,9,11],'Mixolydian':[0,2,4,5,7,9,10],'Locrian':[0,1,3,5,6,8,10],'Chromatic':[0,1,2,3,4,5,6,7,8,9,10,11],'Whole tone':[0,2,4,6,8,10],'Diminished (whole-half)':[0,2,3,5,6,8,9,11],'Diminished (half-whole)':[0,1,3,4,6,7,9,10],'Phrygian dominant':[0,1,4,5,7,8,10],'Double harmonic':[0,1,4,5,7,8,11],'Hungarian minor':[0,2,3,6,7,8,11],'Harmonic major':[0,2,4,5,7,8,11],'Neapolitan minor':[0,1,3,5,7,8,10],'Neapolitan major':[0,1,3,5,7,9,11],'Lydian dominant':[0,2,4,6,7,9,10],'Lydian augmented':[0,2,4,6,8,9,11],'Mixolydian b6':[0,2,4,5,7,8,10],'Dorian b2':[0,1,3,5,7,9,10],'Locrian #2':[0,2,3,5,6,8,10],'Altered':[0,1,3,4,6,8,10],'Major blues':[0,2,3,4,7,9],'Bebop dominant':[0,2,4,5,7,9,10,11],'Bebop major':[0,2,4,5,7,8,9,11],'Hirajoshi':[0,2,3,7,8],'In-sen':[0,1,5,7,10]};
+  var $=function(i){return document.getElementById(i)};
+var rootS=$('root'),scaleS=$('scale');
+NN.forEach(function(n,i){rootS.add(new Option(n,i))});
+Object.keys(SC).forEach(function(k){scaleS.add(new Option(k,k))});
+rootS.value=9;
+var SEQ=[['Straight scale (1-2-3-4…)',[0]],['Thirds (1-3, 2-4, 3-5…)',[0,2]],['Fourths (1-4, 2-5, 3-6…)',[0,3]],['Fifths (1-5, 2-6, 3-7…)',[0,4]],['Sixths (1-6, 2-7, 3-8…)',[0,5]],['Sevenths (1-7, 2-8, 3-9…)',[0,6]],['Octaves (1-8, 2-9, 3-10…)',[0,'L']],['Groups of 3 (1-2-3, 2-3-4…)',[0,1,2]],['Groups of 4 (1-2-3-4, 2-3-4-5…)',[0,1,2,3]],['Groups of 5 (1-2-3-4-5, 2-3-4-5-6…)',[0,1,2,3,4]],['Do-mi-re-fa (1-3-2-4, 2-4-3-5…)',[0,2,1,3]],['Thirds then step (1-3-2, 2-4-3…)',[0,2,1]],['Up 3, back 1 (1-2-3-2, 2-3-4-3…)',[0,1,2,1]],['Up 3, back to start (1-2-3-1, 2-3-4-2…)',[0,1,2,0]],['Neighbor weave (1-2-1-3, 2-3-2-4…)',[0,1,0,2]],['Triads (1-3-5, 2-4-6…)',[0,2,4]],['Triads up and back (1-3-5-3, 2-4-6-4…)',[0,2,4,2]],['Seventh chords (1-3-5-7, 2-4-6-8…)',[0,2,4,6]],['Fifths zigzag (1-5-2-6, 2-6-3-7…)',[0,4,1,5]]];
+SEQ.push(['Coltrane (1-2-3-5, 2-3-4-6…)',[0,1,2,4]]);
+SEQ.push(['Custom… (type your own)',[0]]);
+var CUI=SEQ.length-1;               /* index of "Custom": it must never move, saved settings point at it */
+function perms(n){var o=[];(function go(a,rest){if(!rest.length){o.push(a);return}for(var i=0;i<rest.length;i++)go(a.concat(rest[i]),rest.slice(0,i).concat(rest.slice(i+1)))})([],Array.apply(null,Array(n)).map(function(_,i){return i}));return o}
+var PERMS={3:perms(3),4:perms(4)},PM3=SEQ.length,PM4;
+SEQ.push(['Reorder 3 notes (pick the order)\u2026',[0,1,2]]);PM4=SEQ.length;SEQ.push(['Reorder 4 notes (pick the order)\u2026',[0,1,2,3]]);
+(function(){var o=[];for(var i=0;i<CUI;i++)o.push(i);o.push(PM3,PM4,CUI);o.forEach(function(i){$('seq').add(new Option(SEQ[i][0],i))});
+  [3,4].forEach(function(n){PERMS[n].forEach(function(q,i){var same=q.every(function(x,j){return x==j});$('pm'+n).add(new Option(q.map(function(x){return x+1}).join(' ')+(same?' (same as Groups of '+n+')':''),i))})})})();
+var patOnceNow=false,bxFb=false,ptShown='';
+  var seq=[],ord=[],gi=[],gk=[],gn=0,loopA=-1,loopB=-1,lpMode=0,pcs=[],maxF=22,root=9,p=0,timer=null,playing=false,tc=0,ctx=null;
+var segs=[],ev=[],view=-1,firstPlayed=[],tEnd=0,tLeft=0,tIv=null;
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)');
+
+/*PATHS*/
+/* ---- PATH ENGINE: different playable routes through the same notes ---- */
+var PLV=['Comfortable','Moderate','Challenging','Advanced'],pgMsgs={},pgShown='',pgCache={},pgCacheKeys=[];
+function pathOn(){return $('pp').value!='auto'||$('pl').value!=''}
+function pgSig(s0,c){return 'S'+(6-s0)+':'+c.join('-')}
+function pgParse(g){var m=/^S([1-6]):(\d+(?:-\d+)*)$/.exec(g||'');return m?{s0:6-m[1],c:m[2].split('-').map(Number)}:null}
+function pgWin(fr){var n=fr.length,w=0;if(n<=4)return fr[n-1]-fr[0];for(var i=0;i+3<n;i++)w=Math.max(w,fr[i+3]-fr[i]);return w}
+/* widest = most frets spanned by any 4 neighbouring notes on one string; drift = how far the hand's average fret moves between neighbouring strings */
+function pgMetrics(P,s0,c){
+  var idx=0,runs=[],win=0,drift=0,k,i;
+  for(k=0;k<c.length;k++){var fr=[];for(i=0;i<c[k];i++)fr.push(PE.fret(s0+k,P[idx+i]));idx+=c[k];runs.push(fr);win=Math.max(win,pgWin(fr))}
+  var av=function(a){var t=0;a.forEach(function(x){t+=x});return t/a.length};
+  for(k=0;k+1<runs.length;k++)drift=Math.max(drift,Math.abs(av(runs[k+1])-av(runs[k])));
+  var lv=win<=3?0:win<=4?1:win<=5?2:3;if(drift>=4)lv=Math.min(3,lv+1);
+  return {win:win,drift:drift,lv:lv};
+}
+function pgClass(c){
+  var k=c.length;if(k==1)return 'one';
+  var mx=Math.max.apply(null,c),mn=Math.min.apply(null,c);if(mx-mn<=1)return 'bal';
+  var inc=true,dec=true;for(var i=1;i<k;i++){if(c[i]<c[i-1])inc=false;if(c[i]>c[i-1])dec=false}
+  if(dec)return 'low';if(inc)return 'high';return 'mix';
+}
+function pgTurns(c){var t=0,pr=0;for(var i=1;i<c.length;i++){var d=c[i]-c[i-1],sg=d>0?1:d<0?-1:0;if(sg&&pr&&sg!=pr)t++;if(sg)pr=sg}return t}
+/* every route: consecutive strings, low to high, each note playable (fret 0..maxF), widest stretch <= mx */
+function pgEnum(P,sA,sB,F,mx,cap){
+  var N=P.length,out=[],trunc=false,cnt=[];
+  function rec(idx,s){
+    for(var c=1;idx+c<=N&&!trunc;c++){
+      var f=P[idx+c-1]-PE.midi(s,0);if(f>F)break;
+      var ws=Math.max(idx,idx+c-4);if(f-(P[ws]-PE.midi(s,0))>mx)break;
+      cnt.push(c);
+      if(idx+c==N){if(out.length>=cap)trunc=true;else out.push({s0:cnt.s0,c:cnt.slice()})}
+      else if(s+1<=sB){var n0=P[idx+c]-PE.midi(s+1,0);if(n0>=0&&n0<=F)rec(idx+c,s+1)}
+      cnt.pop();
+    }
+  }
+  for(var s=sA;s<=sB;s++){var f0=P[0]-PE.midi(s,0);if(f0<0||f0>F)continue;cnt=[];cnt.s0=s;rec(0,s)}
+  return {list:out,trunc:trunc};
+}
+function pgBuild(P,s0,c,sA,sB,F){
+  if(s0<sA||s0+c.length-1>sB)return null;var sq=[],idx=0;
+  for(var k=0;k<c.length;k++)for(var j=0;j<c[k];j++){var m=P[idx++];if(m==null)return null;var f=PE.fret(s0+k,m);if(f<0||f>F)return null;sq.push({m:m,i:s0+k,f:f})}
+  return idx==P.length?sq:null;
+}
+function pgValid(P,sq,sA,sB,F){
+  if(sq.length!=P.length)return 'wrong number of notes';
+  for(var j=0;j<sq.length;j++){var x=sq[j];
+    if(x.m!=P[j])return 'note '+(j+1)+' is not the scale note';
+    if(x.i<sA||x.i>sB)return 'note '+(j+1)+' is outside the strings';
+    if(x.f<0||x.f>F||x.m!=PE.midi(x.i,x.f))return 'note '+(j+1)+' has no valid fret';
+    if(j&&(x.i-sq[j-1].i>1||x.i<sq[j-1].i||x.m<=sq[j-1].m))return 'note '+(j+1)+' breaks the string or pitch order'}
+  return '';
+}
+function pgPlan(P,sA,sB,r){
+  var pref=$('pp').value,mx=$('px').value=='any'?99:+$('px').value,F=maxF,lock=$('pl').value,key=NN[r],msg=function(t){pgMsgs[key+': '+t]=1},I={locked:false},pick=null;
+  var ck=P.join(',')+'|'+sA+'|'+sB+'|'+F+'|'+mx,en=pgCache[ck];
+  if(!en){en=pgEnum(P,sA,sB,F,mx,20000);en.list.forEach(function(x){var m=pgMetrics(P,x.s0,x.c);x.lv=m.lv;x.win=m.win;x.drift=m.drift;x.cls=pgClass(x.c);x.turns=pgTurns(x.c);x.sig=pgSig(x.s0,x.c)});
+    pgCache[ck]=en;pgCacheKeys.push(ck);if(pgCacheKeys.length>6)delete pgCache[pgCacheKeys.shift()]}
+  var all=en.list;
+  var cmp=pref=='mix'?function(a,b){return b.turns-a.turns||a.lv-b.lv||a.win-b.win||a.drift-b.drift||(a.sig<b.sig?-1:1)}:function(a,b){return a.lv-b.lv||a.win-b.win||a.drift-b.drift||(a.sig<b.sig?-1:1)};
+  var pr=lock?pgParse(lock):null;
+  if(pr){var sqL=pgBuild(P,pr.s0,pr.c,sA,sB,F);
+    if(sqL){var mL=pgMetrics(P,pr.s0,pr.c);pick={s0:pr.s0,c:pr.c,lv:mL.lv,win:mL.win,drift:mL.drift,sig:lock,cls:pgClass(pr.c)};I.locked=true;I.sq=sqL;I.n=1;I.idx=0}
+    else msg('the locked path '+lock+' does not fit here, so the style choice is used instead')}
+  if(!pick){
+    if(pref=='auto'){return null}
+    var f=all.filter(function(x){return x.cls=='one'||x.cls==pref});
+    if(!f.length&&all.length){msg('no '+({low:'low-string dominant',high:'high-string dominant',bal:'balanced',mix:'mixed'}[pref])+' path fits, so all paths are shown');f=all}
+    if(!f.length){msg('no playable path'+(mx<99?' within '+mx+' frets':'')+' on these strings, so the app\'s own spread plays');return null}
+    f.sort(cmp);var idx=+$('pi').value||0;
+    if(idx>f.length-1){msg('path '+(idx+1)+' is not available here, so path '+f.length+' plays');idx=f.length-1}
+    if(idx<0)idx=0;
+    pick=f[idx];I.n=f.length;I.idx=idx;
+    var lo=Math.max(0,Math.min(idx-2,f.length-6));I.cands=f.slice(lo,lo+6).map(function(x,j){return {i:lo+j,dist:x.c.join('-'),s0:x.s0,lv:x.lv,win:x.win}});
+    I.sq=pgBuild(P,pick.s0,pick.c,sA,sB,F)}
+  var bad=I.sq?pgValid(P,I.sq,sA,sB,F):'could not be built';
+  if(bad){msg('the chosen path was rejected ('+bad+'), so the app\'s own spread plays');return null}
+  I.sig=pick.sig;I.dist=pick.c.join('-');I.s0=pick.s0;I.k=pick.c.length;I.lv=pick.lv;I.win=pick.win;I.drift=pick.drift;I.trunc=en.trunc;I.cls=pick.cls;I.total=all.length;
+  return I;
+}
+function pgSaved(){try{var a=JSON.parse(localStorage.getItem('scalePaths1')||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function pgPutSaved(a){try{localStorage.setItem('scalePaths1',JSON.stringify(a))}catch(e){}}
+function pgStr(s0,k){return k==1?'string '+(6-s0):'strings '+(6-s0)+' to '+(6-s0-k+1)}
+function pgCur(){try{var S=segs[ev[p].s];return S&&S.pinfo?S.pinfo:null}catch(e){return null}}
+function pgUi(){
+  var I=pgCur(),sv=pgSaved(),bx=$('bm').value=='box',ms=Object.keys(pgMsgs),lk=$('pl').value;
+  var sig=[I?I.sig+'/'+I.idx+'/'+I.n:'-',$('pp').value,$('px').value,lk,bx,sv.length,ms.join('~')].join('|');
+  if(sig===pgShown)return;pgShown=sig;
+  var t='';
+  if(bx&&pathOn())t='Paths work in the Whole-neck route view. Change View in the Boxes section to use them.';
+  else if(!I){t=$('pp').value=='auto'?'Using the app\'s own spread (set by Notes per string). Pick a path style to explore other routes.':''}
+  else t=(I.locked?'Locked. ':'Path '+(I.idx+1)+' of '+I.n+(I.trunc?'+':'')+'. ')+I.dist+' notes on '+pgStr(I.s0,I.k)+' · '+PLV[I.lv]+' (widest '+I.win+' frets, hand moves '+I.drift.toFixed(1)+' between strings)'+(I.trunc?'. There are a very large number of routes here, so this is the best of the first 20,000 found.':'');
+  $('pgi').textContent=t;
+  var h='';if(I&&I.cands&&!I.locked)I.cands.forEach(function(c){h+='<button type="button" class="atb" data-i="'+c.i+'" aria-pressed="'+(c.i==I.idx)+'">'+(c.i+1)+'. '+c.dist+' · '+PLV[c.lv]+' · widest '+c.win+'</button>'});
+  $('pgc').innerHTML=h;
+  var can=!!I&&!I.locked&&I.n>1;
+  ['pgpv2','pgnx2','pgrn'].forEach(function(i){$(i).disabled=!can});
+  $('pglk').disabled=!(I||lk);$('pglk').textContent=lk?'Unlock':'Lock';
+  $('pgsa').disabled=!I;
+  var o=$('psv');o.innerHTML='';if(!sv.length)o.add(new Option('No saved paths yet',''));sv.forEach(function(x,i){o.add(new Option(x.n,i))});
+  $('pgus').disabled=$('pgde').disabled=!sv.length;
+  $('pgm').textContent=ms.length?ms.slice(0,3).join('. ')+(ms.length>3?'. And '+(ms.length-3)+' more.':'.'):(lk&&!bx?'This locked path is used for every key until you unlock it.':'');
+}
+function ptUi(){
+  var t='';
+  try{
+    if($('bm').value=='box'){if(bxFb)t='Some boxes have fewer notes than this pattern needs, so the straight scale plays in those boxes.'}
+    else{var P=segs[ev[p].s].pat;
+      if(P){
+        if(P.fb)t='This pattern needs at least '+P.need+' notes in one run and this range has '+P.total+', so the straight scale plays instead.';
+        else if(+$('seq').value!=0||P.covered<P.total)t='Pattern: '+P.groups+(P.groups==1?' group':' groups')+'. '+(P.covered==P.total?'Every note of the range is played.':'Plays '+P.covered+' of '+P.total+' notes (not played: '+P.miss+').')+' Starts on note '+P.first+' and ends on note '+P.last+' of '+P.total+'.'}}
+  }catch(e){}
+  if(t!==ptShown){ptShown=t;$('ptm').textContent=t}
+}
+function pgSet(i){$('pi').value=String(i);reset()}
+$('pgpv2').onclick=function(){var I=pgCur();if(I&&I.n>1)pgSet((I.idx-1+I.n)%I.n)};
+$('pgnx2').onclick=function(){var I=pgCur();if(I&&I.n>1)pgSet((I.idx+1)%I.n)};
+$('pgrn').onclick=function(){var I=pgCur();if(!I||I.n<2)return;var j=Math.floor(Math.random()*(I.n-1));if(j>=I.idx)j++;pgSet(j)};
+$('pglk').onclick=function(){var I=pgCur();if($('pl').value)$('pl').value='';else if(I)$('pl').value=I.sig;else return;reset()};
+$('pgc').addEventListener('click',function(e){var b=e.target.closest?e.target.closest('.atb'):null;if(b)pgSet(+b.getAttribute('data-i'))});
+$('pgsa').onclick=function(){var I=pgCur();if(!I)return;var a=pgSaved();if(a.some(function(x){return x.sig==I.sig}))return;a.push({n:I.dist+' notes from string '+(6-I.s0)+' ('+PLV[I.lv].toLowerCase()+')',sig:I.sig});pgPutSaved(a);pgShown='';pgUi()};
+$('pgus').onclick=function(){var a=pgSaved(),x=a[+$('psv').value];if(x){$('pl').value=x.sig;reset()}};
+$('pgde').onclick=function(){var a=pgSaved(),i=+$('psv').value;if(a[i]){a.splice(i,1);pgPutSaved(a);pgShown='';pgUi()}};
+['pp','px'].forEach(function(id){$(id).onchange=function(){$('pi').value='0';reset()}});
+var CVO={'all':null,'0-0':[0,0],'1-1':[1,1],'2-2':[2,2],'0-1':[0,1],'1-2':[1,2],'0-2':[0,2]},cvMsgs={},cvShown='',ojBad={},ojShown='',kpMsgs={},kpxShown='';
+function cvActive(){return $('cvs').value!='0-5'||$('cvo').value!='all'}
+/* Coverage planner: which scale notes, on which strings, for key r. Returns null when coverage is "whole neck, all octaves" (the original behaviour). */
+function covPlan(r,scn){
+  if(!cvActive())return null;
+  var t=$('cvs').value.split('-'),g0=+t[0],g1=+t[1],stk=PE.stacks(r,maxF,g0,g1),n=stk.length,iv=SC[scn],sel=CVO[$('cvo').value]||null,key=NN[r],lo,hi,a=0,b=n-1,note='';
+  var where=g0==g1?'string '+(6-g0):'strings '+(6-g0)+' to '+(6-g1);
+  if(!n){lo=PE.midi(g0,0);hi=PE.midi(g1,maxF);note=key+': no complete '+key+' octave fits on '+where+' with '+maxF+' frets, so every scale note on '+(g0==g1?'that string':'those strings')+' plays (not root to root)'}
+  else{
+    if(sel){a=sel[0];b=sel[1];
+      if(a>n-1){note=key+': octave '+(a+1)+' does not fit on '+where+', so all '+n+(n==1?' octave plays':' octaves play');a=0;b=n-1}
+      else if(b>n-1){note=key+': only '+n+(n==1?' octave fits':' octaves fit')+' on '+where+', so octave'+(a==n-1?' ':'s ')+(a+1)+(a==n-1?'':' to '+n)+' plays';b=n-1}}
+    lo=stk[a].lo;hi=stk[b].hi}
+  var P=[];for(var m=lo;m<=hi;m++)if(PE.degree(m,r,iv))P.push(m);
+  if(note)cvMsgs[note]=1;
+  return {P:P,g0:g0,g1:g1};
+}
+function bfShow(){
+  var m=$('bf').value,t='';
+  if(m!='cont'){
+    if($('bm').value=='box')t='Bar fit works in the Whole-neck route view. Change View in the Boxes section to use it.';
+    else if($('sm').value!='fix')t='Bar fit needs one note length for every beat. Set Rhythm to "One subdivision".';
+    else if(PH.on)t='Bar fit is not used while a tune rhythm is on.';
+    else{try{var S=segs[ev[p].s],N=S.ord.length,S4=4*sub0(),r=N%S4,bars;
+      if(r==0)t='One lap is '+N+' notes and fills '+(N/S4)+(N/S4==1?' bar':' bars')+' exactly. Nothing to pad or cut.';
+      else if(m=='pad'||N<S4){bars=Math.ceil(N/S4);t='One lap is '+N+' notes plus '+(S4-r)+(S4-r==1?' rest':' rests')+' = '+bars*S4+' slots = '+bars+(bars==1?' bar':' bars')+(m=='cut'?' (shorter than a bar, so it is padded)':'')+'. Every lap starts on beat 1.'}
+      else{bars=Math.floor(N/S4);t='One lap is '+N+' notes. It is cut after '+bars*S4+' notes at the bar line ('+r+(r==1?' note':' notes')+' dropped) = '+bars+(bars==1?' bar':' bars')+'. Every lap starts on beat 1.'}}catch(e){}}
+  }
+  if(t!==bfShown){bfShown=t;$('bfm').textContent=t}
+}
+var bfShown='';
+function kpPre(){
+  var t='';
+  if(kp.on&&kp.base&&kp.base.length){
+    var names=kp.base.map(function(o){return NN[PE.pc(kp.start+o)]}),bad=Object.keys(cvMsgs).concat(Object.keys(pgMsgs),Object.keys(kpMsgs));
+    var oj=Object.keys(ojBad);if(oj.length)bad.push('Closed or Chained does not apply in '+oj.join(', '));
+    t='Keys: '+names.join(', ')+' ('+names.length+(names.length==1?' key':' keys')+'). '+(bad.length?'Check: '+bad.slice(0,4).join('. ')+(bad.length>4?'. And '+(bad.length-4)+' more':'')+'.':'All of them fit.')+($('bm').value=='box'?' In Boxes, every key plays the box that starts on the root on string 6. Practice order is not used while key changes are on.':'');
+  }
+  if(t!==kpxShown){kpxShown=t;$('kpx').textContent=t}
+}
+function ojShow(){
+  var m=$('oj').value,t='';
+  if(m!='auto'&&$('bm').value!='box'){
+    var bad=Object.keys(ojBad);
+    if(bad.length)t='Closed and Chained need a range that starts and ends on the root. In Coverage, pick an octave. Not applied in: '+bad.slice(0,6).join(', ')+'.';
+    else if($('bf').value=='cont'){try{var S=segs[ev[p].s],N=S.ord.length,S4=4*sub0(),g=gcd2(N,S4);
+      t=(m=='closed'?'Closed':'Chained')+': one lap is '+N+' notes. At this subdivision it fits '+(N/g)+(N/g==1?' bar':' bars')+' and lines up with the bar again after '+(S4/g)+(S4/g==1?' lap':' laps')+'.'}catch(e){}}
+  }else if(m!='auto')t='Closed and Chained work in the Whole-neck route view. Change View in the Boxes section to use them.';
+  if(t!==ojShown){ojShown=t;$('ojm').textContent=t}
+}
+function gcd2(a,b){while(b){var t=a%b;a=b;b=t}return a}
+function sub0(){var v=rbAvg();return v>0?v:1}
+function cvShow(){
+  var m=Object.keys(cvMsgs),t='';
+  if(cvActive()){
+    if($('bm').value=='box')t='Coverage works in the Whole-neck route view. Change View in the Boxes section to use it.';
+    else{t='Playing '+($('cvs').selectedOptions[0].text.toLowerCase())+', '+($('cvo').selectedOptions[0].text.toLowerCase())+'. This replaces the Range setting while it is on.';
+      if(m.length)t+=' '+m.slice(0,3).join('. ')+(m.length>3?'. And '+(m.length-3)+' more.':'.')}
+  }
+  if(t!==cvShown){cvShown=t;$('cvm').textContent=t}
+}
+function build(){
+  phSetup();cvMsgs={};pgMsgs={};ojBad={};kpMsgs={};kcNote(+$('root').value);$('kcuRow').hidden=$('kc').value!='cust';
+  var rootPc=+rootS.value,scn=scaleS.value,hi0;maxF=+$('frets').value;hi0=PE.top(maxF);
+  var nps=$('nps').value,sub=rbAvg(),d=$('dir').value,R1=+$('rn').value,R2=+$('rg').value,rng=+$('kr').value;
+  var sel=+$('seq').value,cust=sel==CUI,L=SC[scn].length,once=cust&&$('cum').value=='once';
+  var offB=(cust?parseCu():sel==PM3?PERMS[3][+$('pm3').value||0]:sel==PM4?PERMS[4][+$('pm4').value||0]:SEQ[sel][1]).map(function(o){return o=='L'?L:o});
+  patOnceNow=once;bxFb=false;
+  $('cuRow').hidden=!cust;$('cmRow').hidden=!cust;$('pmRow3').hidden=sel!=PM3;$('pmRow4').hidden=sel!=PM4;
+  var bxOn=$('bm').value=='box',act=loopA>=0&&loopB>=0&&!bxOn;
+  bxLp=(bxOn&&loopA>=0&&loopB>=0&&$('bo').value=='stay')?[loopA,loopB]:null;
+  segs=[];ev=[];kp.grp=[];
+  var anchor=null;
+  var BF=$('bf').value,S4=4*sub,bfOK=BF!='cont'&&$('sm').value=='fix'&&!PH.on&&!bxOn;
+  /* one lap as events. Bar fit: PAD = rests after the last note up to the next bar line; CUT = stop at the last bar line inside the lap (a lap shorter than one bar is padded). Rests keep the previous note on screen and make no sound. */
+  var lapEv=function(S,sid){
+    var out=[],i,N=S.ord.length,slots=0;
+    for(i=0;i<N;i++){var h=S.hd?S.hd[i]:1;out.push({s:sid,k:S.ord[i],q:i,h:h});slots+=h}
+    if(!bfOK||slots%S4==0)return out;
+    if(BF=='cut'&&slots>S4){var keep=Math.floor(slots/S4)*S4;while(slots>keep){slots-=out.pop().h}return out}
+    var last=out[out.length-1],need=S4-slots%S4;
+    for(i=0;i<need;i++)out.push({s:sid,k:last.k,q:last.q,h:1,r:1});
+    return out;
+  };
+  var mkSeg=function(r,useLoop){
+    var pc2=SC[scn].map(function(x){return PE.pc(x+r)}),P=[],sp0,i;
+    var cv=covPlan(r,scn),gE=cv?cv.g1:5;
+    if(cv){P=cv.P;sp0=P[0]}
+    else if(rng==0){for(var m=PE.midi(0,0);m<=hi0;m++)if(pc2.indexOf(PE.pc(m))>-1)P.push(m);sp0=P[0]}
+    else{
+      var o2=rng,cand=[];
+      while(o2>=1){cand=[];for(var m1=PE.midi(0,0);m1<=hi0-12*o2;m1++)if(PE.pc(m1)==r)cand.push(m1);if(cand.length)break;o2--}
+      if(!cand.length){o2=1;cand=[PE.midi(0,0)+PE.pc(r-PE.midi(0,0))]}
+      sp0=anchor==null?cand[0]:nearest(cand,anchor);
+      for(var m2=sp0;m2<=sp0+12*o2;m2++)if(pc2.indexOf(PE.pc(m2))>-1)P.push(m2);
+    }
+    anchor=sp0;
+    var s0=0;
+    if(cv)s0=cv.g0;
+    else if(rng>0){s0=-1;for(i=0;i<6;i++){var f0=PE.fret(i,sp0);if(f0>=0&&f0<=8){s0=i;break}}if(s0<0)for(i=5;i>=0;i--)if(PE.midi(i,0)<=sp0){s0=i;break}}
+    var kk=nps=='auto'?Math.ceil(P.length/(gE-s0+1)):+nps,sq=[],idx=0;
+    for(i=s0;i<=gE;i++){var cnt=0;while(idx<P.length){var mm=P[idx],f=PE.fret(i,mm);if(i<gE&&(f>maxF||(cnt>=kk&&mm>=PE.midi(i+1,0))))break;sq.push({m:mm,i:i,f:f});idx++;cnt++}}
+    var PI=null;if(pathOn()){PI=pgPlan(P,cv?cv.g0:0,cv?cv.g1:5,r);if(PI)sq=PI.sq}
+    var lo=useLoop?loopA:0,hi=useLoop?loopB:sq.length-1,n=hi-lo+1,od=[],g1=[],g2=[],gc=0,off=offB,po=once,fb=false;
+    var run=function(dr,a,b){a=a==null?lo:a;b=b==null?hi:b;
+      if(po){var g0=off.map(function(o){return dr>0?a+o:b-o});if(g0.some(function(x){return x<a||x>b}))return;gc++;var c0=0;for(var q2=0;q2<R2;q2++)g0.forEach(function(x){for(var q1=0;q1<R1;q1++){od.push(x);g1.push(gc);g2.push(c0++)}});return}
+      for(var s=dr>0?a:b;dr>0?s<=b:s>=a;s+=dr){var g=off.map(function(o){return s+dr*o});if(g.some(function(x){return x<a||x>b}))continue;gc++;var c=0;for(var r2=0;r2<R2;r2++)g.forEach(function(x){for(var r1=0;r1<R1;r1++){od.push(x);g1.push(gc);g2.push(c++)}})}};
+    /* Octave join: only for ranges that start and end on the root. Closed = every octave is its own root-to-root pass (roots played twice where passes meet). Chained = octaves run on (shared root once; the top root is not repeated when the line starts over). */
+    var OJ=$('oj').value,ri=[],jn=false;
+    if(OJ!='auto'){for(var jj=lo;jj<=hi;jj++)if(PE.pc(sq[jj].m)==r)ri.push(jj);jn=ri.length>=2&&ri[0]==lo&&ri[ri.length-1]==hi;if(!jn)ojBad[NN[r]]=1}
+    if(jn&&OJ=='closed'){
+      var ps=[];for(var kq=0;kq+1<ri.length;kq++)ps.push([ri[kq],ri[kq+1]]);
+      if(d!='down')ps.forEach(function(pq){run(1,pq[0],pq[1])});
+      if(d!='up')ps.slice().reverse().forEach(function(pq){run(-1,pq[0],pq[1])});
+      if(!od.length){off=[0];po=false;fb=true;ps.forEach(function(pq){run(1,pq[0],pq[1])})}
+    }else{
+      if(d!='down')run(1);
+      if(d!='up')run(-1);
+      if(!od.length){off=[0];po=false;fb=true;run(1)}
+      if(off.length==1&&!po&&d=='ud'){var R=R1*R2;od.splice(n*R,R);g1.splice(n*R,R);g2.splice(n*R,R);od.splice(-R,R);g1.splice(-R,R);g2.splice(-R,R)}
+      else if(jn&&OJ=='chained'&&off.length==1&&!po){var R3=R1*R2;od.splice(-R3,R3);g1.splice(-R3,R3);g2.splice(-R3,R3)}
+    }
+    var cvg={},cvn=0,pat=null;od.forEach(function(x){if(x>=lo&&x<=hi&&!cvg[x]){cvg[x]=1;cvn++}});
+    if(od.length){var ms=[];for(var jx=lo;jx<=hi;jx++)if(!cvg[jx])ms.push(jx-lo+1);pat={groups:gc,covered:cvn,total:n,first:od[0]-lo+1,last:od[od.length-1]-lo+1,fb:fb,need:Math.max.apply(null,offB)+1,miss:ms.slice(0,6).join(', ')+(ms.length>6?', \u2026':'')}}
+    var hdv=null;if(PH.on){pat=null;var pp=phOrd(PH.list,sq.map(function(_,j){return j}),phDeg0(sq[0].m,r,SC[scn]),L);od=pp.od;hdv=pp.hd;g1=od.map(function(){return 1});g2=od.map(function(_,i){return i});gc=od.length}
+    if(useLoop&&$('lps').value=='two'&&!PH.on){pat=null;od=[loopA,loopB];g1=od.map(function(){return 1});g2=od.map(function(_,i){return i});gc=od.length}
+    var fp=[];for(var z=0;z<sq.length;z++)fp[z]=1e9;
+    for(var z2=0;z2<od.length;z2++)if(fp[od[z2]]===1e9)fp[od[z2]]=z2;
+    return {seq:sq,ord:od,hd:hdv,gi:g1,gk:g2,gn:gc,pcs:pc2,root:r,fp:fp,sp:sp0,pinfo:PI,pat:pat};
+  };
+  var addGroup=function(off,gid,ki,n,cyc){
+    var S=mkSeg(PE.pc(rootPc+off),false);S.id=segs.length;S.g=gid;segs.push(S);cvShow();
+    var kl=$('kl').value,L=lapEv(S,S.id),tot=kl[0]=='b'?(+kl.slice(1))*sub:L.length*(+kl.slice(1));
+    var G={id:gid,off:off,ki:ki,n:n,cyc:cyc,s:S.id,e0:ev.length};
+    for(var t=0;t<tot;t++){var x=L[t%L.length],o={s:x.s,k:x.k,q:x.q,h:x.h};if(x.r)o.r=1;ev.push(o)}
+    G.e1=ev.length-1;G.laps=Math.max(1,Math.ceil(tot/L.length));kp.grp.push(G);return G;
+  };
+  var addBoxGroup=function(off,gid,ki,n,cyc){
+    var r=PE.pc(rootPc+off),pl=bxRootIdx(r,scn);
+    if(pl.fb)kpMsgs[NN[r]+': no box starts on the root on string 6, so box 1 plays']=1;
+    bxScaleBuild(r,scn,offB,d,R1,R2,sub,{mode:'stay',cur:pl.idx,first:gid==0&&cyc==0});
+    var G=kp.grp[kp.grp.length-1],S=segs[G.s];G.id=gid;G.off=off;G.ki=ki;G.n=n;G.cyc=cyc;G.laps=Math.max(1,Math.ceil((G.e1-G.e0+1)/S.ord.length));S.g=gid;return G;
+  };
+  if(bxOn){if($('kc').value!='off'&&kpSetup(act,rootPc)){kp.add=addBoxGroup;kpAppend()}else{kpSetup(true,rootPc);bxScaleBuild(rootPc,scn,offB,d,R1,R2,sub)}}
+  else if(kpSetup(act,rootPc)){kp.add=addGroup;kpAppend()}
+  else{
+    var S0=mkSeg(rootPc,act);S0.id=0;S0.g=0;segs.push(S0);
+    lapEv(S0,0).forEach(function(x){var o={s:x.s,k:x.k,q:x.q,h:x.h};if(x.r)o.r=1;ev.push(o)});
+    kp.grp=[{id:0,off:0,ki:0,n:1,cyc:0,s:0,e0:0,e1:ev.length-1,laps:1}];
+  }
+  useSeg(segs[ev[0].s]);p=0;kpChips();bxChips();cvShow();
+}
+  var CW=46,X0=40;
+function xOf(f){return f==0?X0-18:X0+(f-.5)*CW}
+function yOf(i){return 164-i*30}
+function board(ci,ni,lp){
+  var W=X0+maxF*CW+14,h='',used={},j;
+  seq.forEach(function(n){used[n.i+'_'+n.f]=1});
+  [3,5,7,9,15,17,19,21].forEach(function(f){if(f<=maxF)h+='<circle cx="'+xOf(f)+'" cy="89" r="6" fill="#3d2619"/>'});
+  [12,24].forEach(function(f){if(f<=maxF)h+='<circle cx="'+xOf(f)+'" cy="59" r="6" fill="#3d2619"/><circle cx="'+xOf(f)+'" cy="119" r="6" fill="#3d2619"/>'});
+  for(var f=0;f<=maxF;f++)h+='<line x1="'+(X0+f*CW)+'" x2="'+(X0+f*CW)+'" y1="14" y2="164" stroke="#b9b2a6" stroke-width="'+(f==0?5:2)+'"/>';
+  for(var i=0;i<6;i++)h+='<line x1="'+(X0-30)+'" x2="'+W+'" y1="'+yOf(i)+'" y2="'+yOf(i)+'" stroke="#d9d4c8" stroke-width="'+(1+(5-i)*.45)+'"/>';
+  for(var g=1;g<=maxF;g++)h+='<text x="'+xOf(g)+'" y="192" text-anchor="middle" font-size="12" fill="#b9b2a6">'+g+'</text>';
+  var shOn=$('shn').value!='off',shL=$('shl').value,shIv=SC[scaleS.value];
+  if(shOn)for(var s=0;s<6;s++)for(var q=0;q<=maxF;q++){
+    var fm=PE.midi(s,q);
+    if(pcs.indexOf(PE.pc(fm))>-1&&!used[s+'_'+q]){
+      if(shL=='none')h+='<circle cx="'+xOf(q)+'" cy="'+yOf(s)+'" r="3.5" fill="#6b5442"/>';
+      else{var fr=PE.pc(fm)==root,tx=shL=='deg'?PE.degree(fm,root,shIv):PE.name(fm);
+        h+='<circle cx="'+xOf(q)+'" cy="'+yOf(s)+'" r="9" fill="#3a2518" fill-opacity=".8" stroke="'+(fr?'#f5b82e':'#6b5442')+'" stroke-opacity="'+(fr?'.7':'.9')+'" stroke-width="'+(fr?2:1)+'"/><text x="'+xOf(q)+'" y="'+(yOf(s)+3.5)+'" text-anchor="middle" font-size="10" fill="#cdbfa8" fill-opacity=".85">'+tx+'</text>'}
+    }
+  }
+  h+=atRings();
+  var SB=segs[view].box;
+  if(SB)h+='<rect x="'+(X0+(SB.s==0?-34:(SB.s-1)*CW-2))+'" y="4" width="'+(SB.s==0?(SB.e*CW+36):((SB.e-SB.s+1)*CW+4))+'" height="170" rx="10" fill="#f5b82e" fill-opacity=".10" stroke="#f5b82e" stroke-opacity=".5" stroke-dasharray="5 4"/>';
+  else h+='<polyline fill="none" stroke="#8a7a66" stroke-opacity=".55" stroke-width="2" points="'+seq.map(function(n){return xOf(n.f)+','+yOf(n.i)}).join(' ')+'"/>';
+  seq.forEach(function(n,k){
+    var x=xOf(n.f),y=yOf(n.i),pc=PE.pc(n.m),c=k==ci,nx=k==ni&&!c,dn=firstPlayed[k]<lp&&!c;
+    var fill=c?'#f5b82e':dn?'#2f6f66':'#4a3326',tx=c?'#2b1810':'#efe6d6',act=loopA>=0&&loopB>=0;
+    h+='<g data-k="'+k+'"'+(act&&(k<loopA||k>loopB)?' opacity=".3"':'')+'>';
+    if(c)h+='<circle cx="'+x+'" cy="'+y+'" r="21" fill="#f5b82e" fill-opacity=".28"/>';
+    if(pc==root)h+='<circle cx="'+x+'" cy="'+y+'" r="'+(c?18:15)+'" fill="none" stroke="#6fe3d0" stroke-width="2"/>';
+    h+='<circle cx="'+x+'" cy="'+y+'" r="'+(c?14:12)+'" fill="'+fill+'"'+(nx?' stroke="#f5b82e" stroke-width="2.5" stroke-dasharray="3 3"':'')+'/>';
+    h+='<text x="'+x+'" y="'+(y+4)+'" text-anchor="middle" font-size="'+(c?13:11)+'" font-weight="700" fill="'+tx+'">'+NN[pc]+'</text>';
+    if(act&&(k==loopA||k==loopB))h+='<text x="'+x+'" y="'+(y-19)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#6fe3d0">'+(k==loopA?'A':'B')+'</text>';
+    if(SB){if(k==SB.po)h+='<circle cx="'+x+'" cy="'+y+'" r="19" fill="none" stroke="#f5b82e" stroke-width="2.5" stroke-dasharray="4 3"/>';if(k==SB.pi&&k!=SB.po)h+='<circle cx="'+x+'" cy="'+y+'" r="19" fill="none" stroke="#6fe3d0" stroke-width="2.5" stroke-dasharray="4 3"/>'}
+    h+='<circle cx="'+x+'" cy="'+y+'" r="20" fill="transparent"/></g>';
+  });
+  var fb=$('fb');fb.setAttribute('width',W);fb.setAttribute('height',200);fb.setAttribute('viewBox','0 0 '+W+' 200');fb.innerHTML=h;
+  var bd=$('bd');
+  bd.scrollTo({left:xOf(seq[ci].f)-bd.clientWidth/2,behavior:(RM.matches||$('bpm').value*$('sub').value>360)?'auto':'smooth'});
+}
+var atlas={sel:-1,sig:'',list:[]};
+function atStr(){var v=($('ats').value||'0-5').split('-');return [+v[0],+v[1]]}
+function strFill(a){
+  var o=[['0-5','Whole neck (all six strings)']];
+  for(var n=1;n<=5;n++)for(var s=5;s-n+1>=0;s--){var lo=s-n+1;if(n==1)o.push([lo+'-'+lo,'String '+(6-lo)+' only']);else o.push([lo+'-'+s,n+' strings: '+(6-lo)+' down to '+(6-s)])}
+  /* single strings first, then groups, longest groups last */
+  var rest=o.slice(1).sort(function(x,y){var lx=+x[0].split('-')[1]-+x[0].split('-')[0],ly=+y[0].split('-')[1]-+y[0].split('-')[0];return lx-ly||(+x[0].split('-')[0])-(+y[0].split('-')[0])});
+  o=[o[0]].concat(rest);
+  o.forEach(function(x){a.add(new Option(x[1],x[0]))});
+}
+function atFill(){strFill($('ats'));strFill($('cvs'))}
+function atRings(){
+  if(atlas.sel<0||!atlas.list[atlas.sel])return '';
+  var S=atlas.list[atlas.sel],st=atStr(),h='',iv=SC[scaleS.value];
+  for(var s=st[0];s<=st[1];s++)for(var q=0;q<=maxF;q++){
+    var m=PE.midi(s,q);if(m<S.lo||m>S.hi||!PE.degree(m,root,iv))continue;
+    h+='<circle cx="'+xOf(q)+'" cy="'+yOf(s)+'" r="12" fill="none" stroke="#3fb6a8" stroke-width="2"/>';
+    if(m==S.lo||m==S.hi)h+='<circle cx="'+xOf(q)+'" cy="'+yOf(s)+'" r="15.5" fill="none" stroke="#3fb6a8" stroke-width="2" stroke-dasharray="3 3"/>';
+  }
+  return h;
+}
+function atPos(P){return P.map(function(x){return 'string '+(6-x.s)+', fret '+x.f}).join(' or ')}
+function atRender(){
+  var st=atStr(),sc=scaleS.value,sig=root+'|'+sc+'|'+maxF+'|'+st.join('-');
+  if(sig==atlas.sig)return;
+  atlas.sig=sig;atlas.sel=-1;
+  var iv=SC[sc],stk=PE.stacks(root,maxF,st[0],st[1]),box=$('atn');atlas.list=stk;
+  $('atx').textContent=NN[root]+' '+sc+' · '+(stk.length?stk.length+(stk.length==1?' complete octave':' complete octaves')+' from '+NN[root]+' to '+NN[root]:'no complete '+NN[root]+' to '+NN[root]+' octave fits on these strings');
+  var h='';
+  stk.forEach(function(S,i){
+    var R=PE.range(S.lo,S.hi,root,iv,maxF,st[0],st[1]),mn=99,mx=-1;
+    R.forEach(function(n){n.pos.forEach(function(x){if(x.f<mn)mn=x.f;if(x.f>mx)mx=x.f})});
+    h+='<button type="button" class="atb" data-i="'+i+'" aria-pressed="false">Octave '+(i+1)+': '+PE.label(S.lo)+' to '+PE.label(S.hi)
+      +'<small>'+R.map(function(n){return PE.name(n.m)}).join(' ')+' · degrees '+R.map(function(n){return n.d}).join(' ')+'</small>'
+      +'<small>Low '+NN[root]+': '+atPos(R[0].pos)+'. High '+NN[root]+': '+atPos(R[R.length-1].pos)+'</small>'
+      +'<small>Frets used '+mn+' to '+mx+(i<stk.length-1?' · the next octave starts on this high '+NN[root]:'')+'</small></button>';
+  });
+  box.innerHTML=h;
+}
+$('atn').addEventListener('click',function(e){
+  var b=e.target.closest?e.target.closest('.atb'):null;if(!b)return;
+  var i=+b.getAttribute('data-i');atlas.sel=atlas.sel==i?-1:i;
+  [].forEach.call($('atn').querySelectorAll('.atb'),function(x){x.setAttribute('aria-pressed',+x.getAttribute('data-i')==atlas.sel?'true':'false')});
+  render();
+});
+function atChanged(){atlas.sig='';atRender();render()}
+$('ats').onchange=atChanged;$('shn').addEventListener('change',function(){render()});$('shl').addEventListener('change',function(){render()});
+atFill();
+function render(){
+  kpEnsure(p);
+  var e=ev[p],S=segs[e.s];if(view!==e.s)useSeg(S);
+  var ci=e.k,lp=e.q,n=seq[ci],j=1,e2=ev[(p+1)%ev.length];
+  while(j<ev.length&&e2.s==e.s&&e2.k==e.k){j++;e2=ev[(p+j)%ev.length]}
+  var ni=e2.s==e.s?e2.k:-1,nn=segs[e2.s].seq[e2.k];
+  board(ci,ni,lp);
+  $('cur').innerHTML=PE.name(n.m)+'<small>'+IV[PE.interval(n.m,root)]+'</small>';
+  $('nxt').textContent=PE.name(nn.m);
+  var G=kp.grp[S.g];
+  $('pr').style.width=((p-G.e0+1)/(G.e1-G.e0+1)*100)+'%';
+  $('cnt').textContent=(ord.length>gn?'Group '+gi[lp]+' of '+gn+' \u00b7 note '+(gk[lp]+1)+' \u00b7 ':'Note '+(lp+1)+' of '+ord.length+' \u00b7 ')+'string '+(6-n.i)+', fret '+n.f;
+  kpUi(p);bxUi();atRender();pgUi();ojShow();ptUi();bfShow();kpPre();bkShow();
+  if($('drone').value!='off')droneName(root,$('drone').value,chord(),scaleS.value,!!(ctx&&(playing||$('mode').value=='tap')));
+}
+  var master=null;
+function ac(){if(!ctx){var A=window.AudioContext||window.webkitAudioContext;ctx=new A();master=ctx.createGain();master.gain.value=.8;var cp=ctx.createDynamicsCompressor();cp.threshold.value=-18;cp.knee.value=20;cp.ratio.value=8;cp.attack.value=.003;cp.release.value=.2;master.connect(cp);cp.connect(ctx.destination)}if(ctx.state!='running')ctx.resume()}
+function pluck(m,t0){
+  if(!$('tone').checked||!ctx)return;
+  var o=ctx.createOscillator(),g=ctx.createGain(),t=t0||ctx.currentTime;
+  o.type='triangle';o.frequency.value=PE.freq(m);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.22,t+.005);g.gain.exponentialRampToValueAtTime(.001,t+.6);
+  o.connect(g);g.connect(master);o.onended=function(){o.disconnect();g.disconnect()};o.start(t);o.stop(t+.7);
+}
+function click(acc,t0){
+  if(!$('click').checked||!ctx)return;
+  var o=ctx.createOscillator(),g=ctx.createGain(),t=t0||ctx.currentTime;
+  o.type='square';o.frequency.value=acc?1600:1100;
+  g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);
+  o.connect(g);g.connect(master);o.onended=function(){o.disconnect();g.disconnect()};o.start(t);o.stop(t+.06);
+}
+var q=[],sp=0,nextT=0,wl=null;
+function wake(on){
+  try{
+    if(on&&navigator.wakeLock&&!wl){navigator.wakeLock.request('screen').then(function(l){if(!playing){l.release();return}wl=l;l.addEventListener('release',function(){wl=null})}).catch(function(){})}
+    else if(!on&&wl){wl.release();wl=null}
+  }catch(e){}
+}
+function sched(){
+  if(!playing||!ctx)return;
+  var bl=60/(+$('bpm').value),ch=false;
+  if(nextT<ctx.currentTime)nextT=ctx.currentTime+.03;
+  var la=document.hidden?(clk?0.8:4):.25;
+  while(nextT<ctx.currentTime+la){
+    if(PX&&PX.run){
+      if(PX.pre>0){click(rb.beat%4==0,nextT);nextT+=bl;rb.beat++;rb.n=0;PX.pre--;continue}
+      if(!PX.began){PX.began=true;PX.startBeat=rb.beat;PX.startT=nextT;PX.laps=0}
+      var act=pxStep();if(act=='end')return;if(act=='swap')bl=60/(+$('bpm').value);
+      bl=pxRamp(bl);
+      if(PX.rest){bkStep(bl);click(rb.beat%4==0,nextT);nextT+=bl;rb.beat++;rb.n=0;rb.sb=rbPick(rb.beat);continue}
+    }
+    kpEnsure(sp);var e=ev[sp];
+    bkWant(segs[e.s].root);bkStep(bl);
+    if(!e.r)pluck(segs[e.s].seq[e.k].m,nextT);
+    q.push({t:nextT,p:sp,sb:rb.sb,E:ev,S:segs});tc++;
+    for(var hs=0,hh=e.h||1;hs<hh;hs++){if(rb.n==0)click(rb.beat%4==0,nextT);nextT+=rbDur(rb.sb,rb.n,bl);rb.n++;if(rb.n>=rb.sb){rb.n=0;rb.beat++;rb.sb=rbPick(rb.beat)}}
+    sp=(sp+1)%ev.length;if(sp==0&&PX)PX.laps++;
+  }
+  while(q.length&&q[0].t<=ctx.currentTime){var qe=q.shift();
+    if(qe.E!==ev){var se=ev,ss=segs;ev=qe.E;segs=qe.S;p=qe.p;if(!document.hidden){try{render()}catch(x){}}ev=se;segs=ss;p=0}
+    else{p=qe.p;ch=true}
+    if(qe.sb!==lastSb){lastSb=qe.sb;sdShow(qe.sb)}}
+  if(ch&&!document.hidden)render();
+}
+function tick(){
+  stopClock();q=[];BK.root=-1;BK.want=-1;BK.dirty=false;if(PX&&PX.run){PX.began=false;PX.laps=0;PX.hasJump=false}kpEnsure(p);sp=p;rb={beat:0,n:0,sb:2};rb.sb=rbPick(0);nextT=ctx.currentTime+.05;
+  render();
+  startClock();sched();
+  wake(true);
+}
+function parseCu(){
+  var t=$('cu').value.trim(),a=/^\d+$/.test(t)?t.split(''):(t.match(/\d+/g)||[]),m=$('cuMsg'),once=$('cum').value=='once';
+  a=a.map(Number);var bad=a.filter(function(x){return !(x>=1&&x<=15)});a=a.filter(function(x){return x>=1&&x<=15});
+  var ig=bad.length?' Ignored '+bad.join(', ')+' (use 1 to 15).':'';
+  if(!a.length||a.length>16){m.textContent='Type scale degrees, like 1 3 2 4. Up to 16 notes.'+ig;return [0]}
+  m.textContent=(once?'Plays degrees '+a.join('-')+' once, as written, counting from the lowest note of the range.':'Plays degrees '+a.join('-')+' from every note, then slides up one.')+ig;
+  return a.map(function(x){return x-1});
+}
+  var dr={g:null,o:[],k:'',r:-1},CHO={'Major pentatonic':[[0,4,7],[0,4,7,9]],'Minor pentatonic':[[0,3,7],[0,3,7,10]],'Blues':[[0,3,7],[0,3,7,10]],'Major blues':[[0,4,7],[0,4,7,9]],'Whole tone':[[0,4,8],[0,4,8,10]],'Diminished (whole-half)':[[0,3,6],[0,3,6,9]],'Diminished (half-whole)':[[0,4,7],[0,4,7,10]],'Altered':[[0,4,8],[0,4,8,10]],'Hirajoshi':[[0,3,7],[0,3,7,8]],'In-sen':[[0,5,7],[0,5,7,10]],'Bebop dominant':[[0,4,7],[0,4,7,10]],'Bebop major':[[0,4,7],[0,4,7,11]]},QN={'0,4,7':'major','0,3,7':'minor','0,3,6':'diminished','0,4,8':'augmented','0,5,7':'sus4','0,4,7,11':'maj7','0,4,7,10':'7','0,3,7,10':'m7','0,3,7,11':'m(maj7)','0,3,6,10':'m7b5','0,3,6,9':'dim7','0,4,7,9':'6','0,4,8,10':'7#5','0,4,8,11':'maj7#5','0,5,7,10':'7sus4','0,3,7,8':'m(b6)'};
+function chord(){
+  var sc=scaleS.value,iv=SC[sc],m=$('drone').value,o=CHO[sc];
+  if(m=='root')return [0];
+  if(m=='fifth'||sc=='Chromatic')return [0,7];
+  if(o)return m=='triad'?o[0]:o[1];
+  var f=[iv[0],iv[2],iv[4],iv[6]];
+  return m=='triad'?f.slice(0,3):f;
+}
+function stopDrone(){
+  if(!dr.g)return;
+  var t=ctx.currentTime;dr.g.gain.cancelScheduledValues(t);dr.g.gain.setTargetAtTime(0,t,.08);
+  dr.o.forEach(function(o){o.stop(t+.6)});dr.g=null;dr.o=[];dr.k='';dr.r=-1;
+}
+function curRoot(){
+  try{var e=ev[p];if(e&&segs[e.s]&&segs[e.s].root!==undefined)return segs[e.s].root}catch(x){}
+  return root;
+}
+function droneName(r,m,c,sc,want){
+  if(m=='off'){$('dn').textContent='';return}
+  var nt=c.map(function(x){return PE.name(r+x)}).join(' ');
+  var name=NN[r]+' '+(sc=='Chromatic'&&m!='root'?'(chromatic has no single chord, so root + fifth)':m=='root'?'root':m=='fifth'?'root + fifth':QN[c.join(',')]||'chord');
+  $('dn').textContent=(want?'Playing: ':'Drone ready: ')+name+' \u00b7 notes '+nt;
+}
+function droneBuild(r,c,key,t,att){
+  var g=ctx.createGain(),f=ctx.createBiquadFilter(),ps=[36+r].concat(c.map(function(x){return 48+r+x}));
+  f.type='lowpass';f.frequency.value=700;f.connect(g);g.connect(master);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime($('dv').value/100*.25,t+att);
+  ps.forEach(function(m2){[-6,6].forEach(function(dt){
+    var o=ctx.createOscillator(),vg=ctx.createGain();
+    o.type='sawtooth';o.frequency.value=PE.freq(m2);o.detune.value=dt;vg.gain.value=1/(2*ps.length);
+    o.connect(vg);vg.connect(f);o.start(t);dr.o.push(o);
+  })});
+  dr.g=g;dr.k=key;dr.r=r;
+}
+function updateDrone(){
+  var m=$('drone').value,c=chord(),sc=scaleS.value,r=curRoot();
+  var want=m!='off'&&ctx&&($('mode').value=='tap'||playing);
+  droneName(r,m,c,sc,want);
+  if(!want){stopDrone();return}
+  var key=m+'|'+r+'|'+c.join(',');
+  if(dr.g&&dr.k==key)return;
+  stopDrone();
+  droneBuild(r,c,key,ctx.currentTime,.5);
+}
+/* D1 fix: called by the scheduler when the next note belongs to a segment with a different root.
+   The old drone fades out and the new one fades in at the scheduled audio time t. */
+function droneAt(r,t){
+  var m=$('drone').value,c=chord();
+  if(m=='off'||!ctx||!dr.g)return;
+  var key=m+'|'+r+'|'+c.join(',');
+  if(dr.k==key)return;
+  dr.g.gain.cancelScheduledValues(t);dr.g.gain.setTargetAtTime(0,t,.04);
+  dr.o.forEach(function(o){try{o.stop(t+.4)}catch(x){}});
+  dr.g=null;dr.o=[];dr.k='';
+  droneBuild(r,c,key,t,.05);
+}
+function lpUi(){
+  var b=$('lpb'),t=$('lp'),a=loopA>=0&&loopB>=0;
+  function d(k){var s=seq[k];if(!s)return '—';return PE.name(s.m)+' (string '+(6-s.i)+', fret '+s.f+')'}
+  b.textContent=(a||lpMode)?'Clear loop':'Set loop';
+  t.textContent=lpMode==1?'Tap the start note on the fretboard':lpMode==2?'Now tap the end note':a?'Looping '+(loopB-loopA+1)+' notes: '+d(loopA)+' to '+d(loopB):'Loop a section of the route';
+}
+function fmtT(ms){var s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2)}
+function timerMs(){return (+$('timer').value)*60000}
+function showTimer(){
+  var ms=tEnd?tEnd-performance.now():tLeft,d=timerMs();
+  $('tleft').textContent=(tEnd||tLeft)?fmtT(ms):(d?fmtT(d):'—');
+  $('tleft').classList.toggle('warn',!!tEnd&&ms<=10000);
+  if(tEnd&&ms<=0)timeUp();
+}
+function startTimer(){
+  var d=timerMs();clearInterval(tIv);tIv=null;
+  if(!d){tEnd=0;tLeft=0;showTimer();return}
+  if(!tEnd){if(tLeft<=0)tLeft=d;tEnd=performance.now()+tLeft}
+  tIv=setInterval(showTimer,250);showTimer();
+}
+function pauseTimer(){
+  if(tEnd){tLeft=Math.max(0,tEnd-performance.now());tEnd=0}
+  clearInterval(tIv);tIv=null;
+  $('tleft').classList.remove('warn');showTimer();
+}
+function timeUp(){
+  clearInterval(tIv);tIv=null;tEnd=0;tLeft=0;
+  stop();
+  $('tleft').textContent='0:00';$('tleft').classList.remove('warn');
+  chime();
+  if(navigator.vibrate)navigator.vibrate([200,100,200]);
+}
+function chime(){
+  if(!ctx||!master)return;
+  var t=ctx.currentTime;
+  [0,4,7].forEach(function(s,i){
+    var o=ctx.createOscillator(),g=ctx.createGain(),tt=t+i*.13;
+    o.type='sine';o.frequency.value=PE.freq(72+s);
+    g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(.2,tt+.01);g.gain.exponentialRampToValueAtTime(.001,tt+.6);
+    o.connect(g);g.connect(master);o.start(tt);o.stop(tt+.65);
+    o.onended=function(){o.disconnect();g.disconnect()};
+  });
+}
+function stop(){stopClock();q=[];playing=false;$('play').textContent='Play';wake(false);pauseTimer();updateDrone()}
+function go(d){
+  ac();p=(p+d+ev.length)%ev.length;kpEnsure(p);
+  var gd=0;while(ev[p]&&ev[p].r&&gd++<ev.length){p=(p+d+ev.length)%ev.length;kpEnsure(p)}
+  updateDrone();
+  if(playing){stopClock();tick()}else{render();pluck(segs[ev[p].s].seq[ev[p].k].m)}
+}
+function reset(){var was=playing;stopClock();build();tc=0;lpUi();updateDrone();if(was)tick();else render()}
+$('play').onclick=function(){
+  ac();
+  if(playing){stop();return}
+  playing=true;tc=0;$('play').textContent='Pause';startTimer();updateDrone();tick();
+};
+$('prev').onclick=function(){go(-1)};
+$('next').onclick=function(){go(1)};
+['root','scale','nps','frets'].forEach(function(id){$(id).onchange=function(){loopA=loopB=-1;lpMode=0;reset()}});
+['dir','seq','rn','rg','cum','pm3','pm4','bf'].forEach(function(id){$(id).onchange=reset});
+['cvs','cvo','oj'].forEach(function(id){$(id).onchange=function(){loopA=loopB=-1;lpMode=0;kp.pair=null;kp.pick=0;reset()}});
+$('lpb').onclick=function(){
+  if(loopA>=0||lpMode){loopA=loopB=-1;lpMode=0;reset()}else if($('bm').value=='box'&&$('bo').value!='stay'){$('lp').textContent='To loop notes, set Practice order to Stay in one box';return}else if($('bm').value!='box'&&$('kc').value!='off'){$('lp').textContent='Turn the key cycle off to loop a section';return}else lpMode=1;
+  lpUi();
+};
+$('fb').onclick=function(e){
+  var el=e.target.closest?e.target.closest('[data-k]'):null;if(!el)return;
+  var k=+el.getAttribute('data-k');
+  if(lpMode==1){loopA=k;lpMode=2;lpUi();return}
+  if(lpMode==2){
+    if(k==loopA){$('lp').textContent='Pick a different end note';return}
+    loopB=k;if(loopB<loopA){var t=loopA;loopA=loopB;loopB=t}
+    lpMode=0;reset();return;
+  }
+  ac();var G=kp.grp[segs[ev[p].s].g],pos=-1;for(var i=G.e0;i<=G.e1;i++)if(ev[i].s==ev[p].s&&ev[i].k==k){pos=i;break}
+  if(pos<0)return;p=pos;
+  if(playing){stopClock();tick()}else{render();pluck(seq[k].m)}
+};
+$('cu').oninput=reset;
+$('drone').onchange=function(){ac();updateDrone()};
+$('dv').oninput=function(){if(dr.g)dr.g.gain.setTargetAtTime(this.value/100*.25,ctx.currentTime,.05)};
+$('bpm').oninput=function(){$('bv').textContent=this.value+' BPM'};
+$('mode').onchange=function(){var t=this.value=='tap';if(t)stop();$('play').disabled=t;updateDrone()};
+$('timer').onchange=function(){
+  tEnd=0;tLeft=0;clearInterval(tIv);tIv=null;
+  if(playing)startTimer();else showTimer();
+};
+/* ---- key plan: key changes inside the practice ---- */
+var KN=['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+var KC={m3d:[-4,3],m3u:[4,3],mn3:[3,4],mn3d:[-3,4],wt:[2,6],wtd:[-2,6],p4:[5,12],p5:[7,12],cu:[1,12],cd:[-1,12],rnd:[0,12]};
+var kp={on:false,cyc:0,appendAt:1e9,grp:[],add:null,streak:0,pair:null,hpair:null,pick:0,from:0,base:[0],start:0,lastOff:null};
+var kpHard={};try{kpHard=JSON.parse(localStorage.getItem('kpHard')||'{}')||{}}catch(e){kpHard={}}
+function shuf(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function nearest(c,a){var b=c[0];c.forEach(function(x){if(Math.abs(x-a)<Math.abs(b-a))b=x});return b}
+function kpName(o){return KN[PE.pc(kp.start+o)]}
+function kcCust(){
+  var raw=($('kcu').value||'').trim(),tk=raw.match(/[+\-]?\d+/g)||[],bad=raw.replace(/[+\-]?\d+/g,' ').replace(/[\s,;]+/g,' ').trim().split(' ').filter(Boolean),st=[],ign=bad.slice();
+  tk.forEach(function(x){var v=+x;if(v>=-11&&v<=11)st.push(v);else ign.push(x)});
+  if(st.length>23){ign.push('(more than 23 steps)');st=st.slice(0,23)}
+  var o=[0],sum=0;st.forEach(function(v){sum+=v;o.push(PE.pc(sum))});
+  kp.custOffs=o;kp.custIgn=ign;return st.length?[0,o.length]:null;
+}
+function kcNote(rootPc){
+  var t=$('kc').value,m='';
+  if(t=='cust'){
+    var c=kcCust();
+    if(!c)m='Type the steps between keys in semitones, like 1 1 1 1 1 1.';
+    else m='Each number moves from the previous key: '+kp.custOffs.map(function(x){return NN[PE.pc(rootPc+x)]}).join(', ')+' ('+kp.custOffs.length+(kp.custOffs.length==1?' key':' keys')+').'+(kp.custIgn.length?' Ignored: '+kp.custIgn.join(' ')+'.':'');
+  }
+  else if(t=='p4')m='Fourths up visit the same keys, in the same order, as fifths down.';
+  else if(t=='p5')m='Fifths up visit the same keys, in the same order, as fourths down.';
+  $('kcum').textContent=m;
+}
+function kpSetup(blocked,start){
+  kp.start=start;kp.cyc=0;kp.lastOff=null;kp.appendAt=1e9;kp.hpair=null;
+  var t=$('kc').value,c=t=='cust'?kcCust():KC[t];kp.on=!!c&&!blocked;
+  if(!kp.on){kp.base=[0];return false}
+  var ns=$('kn').value,n=ns=='all'?c[1]:Math.min(+ns,c[1]),o=[],i;
+  if(t=='rnd'){var all=[1,2,3,4,5,6,7,8,9,10,11];shuf(all);o=[0].concat(all.slice(0,n-1))}
+  else if(t=='cust')o=kp.custOffs.slice(0,n);
+  else for(i=0;i<n;i++)o.push(PE.pc(i*c[0]));
+  kp.base=o;
+  if($('kd').value=='hard'){
+    var best=null,bc=0;for(var k in kpHard)if(kpHard[k]>bc){bc=kpHard[k];best=k}
+    if(best){var ab=best.split('>'),a=KN.indexOf(ab[0]),b=KN.indexOf(ab[1]);if(a>-1&&b>-1&&a!=b)kp.hpair=[PE.pc(a-start),PE.pc(b-start)]}
+  }
+  return true;
+}
+function kpOffsets(){
+  var d=$('kd').value,pr=d=='one'?kp.pair:d=='hard'?kp.hpair:null;
+  if(pr&&pr.length==2&&pr[0]!=pr[1])return pr.slice();
+  var o=kp.base.slice();
+  if(kp.cyc>0&&($('ko').value=='shuf'||$('kc').value=='rnd')){shuf(o);if(o.length>1&&o[0]==kp.lastOff){o.push(o.shift())}}
+  kp.lastOff=o[o.length-1];return o;
+}
+function kpAppend(){
+  var offs=kpOffsets(),cyc=kp.cyc++;
+  offs.forEach(function(off,ki){var G=kp.add(off,kp.grp.length,ki,offs.length,cyc);if(ki==offs.length-1)kp.appendAt=G.e0});
+}
+function kpEnsure(i){if(kp.on)while(i>=kp.appendAt)kpAppend()}
+function kpChips(){
+  var h='';if(kp.on)kp.base.forEach(function(o){h+='<button type="button" data-o="'+o+'">'+kpName(o)+'</button>'});
+  $('kch').innerHTML=h;$('kbar').hidden=!kp.on;kpStatus();
+}
+function kpHardTxt(){
+  var a=[];for(var k in kpHard)a.push([k,kpHard[k]]);a.sort(function(x,y){return y[1]-x[1]});
+  return a.length?a.slice(0,3).map(function(x){return x[0].replace('>',' \u2192 ')+' \u00d7'+x[1]}).join(', '):'none yet';
+}
+function kpStatus(){
+  var st=+$('kt').value;
+  $('kst').textContent=(kp.msg?kp.msg+' \u00b7 ':'')+'Clean streak '+kp.streak+(st?' of 2':'')+' \u00b7 Hard transitions: '+kpHardTxt();
+}
+function kpUi(i){
+  var bar=$('kbar');if(!kp.on){bar.hidden=true;return}
+  bar.hidden=false;
+  var G=kp.grp[evGroup(i)],nG=kp.grp[G.id+1],q=$('kq').value,last=kpIsLast(G,i),show=!!nG&&(q=='always'||(q=='last'&&last));
+  $('kk').textContent='Key '+kpName(G.off)+'  \u00b7  '+(G.ki+1)+' of '+G.n+(G.laps>1?'  \u00b7  '+kpLap(i,G)+' of '+G.laps:'');
+  var x='';
+  if(q=='blind')x='Next key: ?';
+  else if(show&&nG)x='Next key: '+kpName(nG.off)+' \u2014 land on '+PE.name(evNote(nG.e0).m);
+  var d=$('kd').value;
+  if(d=='one'){x=kp.pick==2?'Now tap the key you are changing to':(!kp.pair?'Tap the key you change from, then the key you change to':x)}
+  if(d=='hard'&&!kp.hpair)x='No hard transitions marked yet. Use Mark hard after a bad key change.';
+  $('kx').textContent=x;$('kx').style.color=(show&&last)?'var(--acc)':'';
+  var cs=$('kch').children;
+  for(var j=0;j<cs.length;j++){
+    var o=+cs[j].getAttribute('data-o'),cur=o==G.off,nx=show&&nG&&o==nG.off;
+    cs[j].className=(cur?'on':'')+(nx?' nx':'');
+    cs[j].textContent=(q=='blind'&&!cur)?'?':kpName(o);
+  }
+}
+$('kch').onclick=function(e){
+  var b=e.target.closest?e.target.closest('button'):null;if(!b||$('kd').value!='one')return;
+  var o=+b.getAttribute('data-o');
+  if(kp.pick!=2){kp.pick=2;kp.from=o;kpUi(p);return}
+  if(o==kp.from)return;
+  kp.pair=[kp.from,o];kp.pick=0;reset();
+};
+['kc','kn','kl','ko','kr','kd','kcu'].forEach(function(id){var e=$(id);if(e)e.onchange=function(){kp.pair=null;kp.pick=0;reset()}});
+$('kq').onchange=function(){render()};
+$('kt').onchange=function(){kpStatus()};
+$('kok').onclick=function(){
+  if(!kp.on)return;var st=+$('kt').value;kp.streak++;kp.msg='';
+  if(st&&kp.streak>=2){var nb=Math.min(300,+$('bpm').value+st);$('bpm').value=nb;$('bpm').dispatchEvent(new Event('input',{bubbles:true}));kp.streak=0;kp.msg='Tempo up to '+nb+' BPM'}
+  kpStatus();
+};
+$('kno').onclick=function(){if(!kp.on)return;kp.streak=0;kp.msg='';kpStatus()};
+$('khd').onclick=function(){
+  if(!kp.on)return;
+  var G=kp.grp[evGroup(p)],pg=kp.grp[G.id-1];
+  if(!pg){kp.msg='Mark hard after a key change';kpStatus();return}
+  var k=kpName(pg.off)+'>'+kpName(G.off);kpHard[k]=(kpHard[k]||0)+1;
+  try{localStorage.setItem('kpHard',JSON.stringify(kpHard))}catch(e){}
+  kp.msg='Marked '+k.replace('>',' \u2192 ');kpStatus();
+};
+$('kcl').onclick=function(){kpHard={};try{localStorage.removeItem('kpHard')}catch(e){}kp.msg='Hard marks cleared';kpStatus()};
+$('kpre').onchange=function(){
+  if(this.value==='')return;var o=KPRE[+this.value][1];
+  for(var k in o)$(k).value=o[k];
+  $('bv').textContent=$('bpm').value+' BPM';$('bm').value='route';kpClr();kp.pair=null;kp.pick=0;this.value='';reset();
+  $('bpm').dispatchEvent(new Event('input',{bubbles:true}));
+};
+
+function evNote(i){var e=ev[i];return segs[e.s].seq[e.k]}
+function evGroup(i){return segs[ev[i].s].g}
+function kpLap(i,G){return Math.floor((i-G.e0)/segs[G.s].ord.length)+1}
+function kpIsLast(G,i){return (G.e1-i)<4*(+$('sub').value)}
+function kpClr(){loopA=loopB=-1;lpMode=0}
+function useSeg(S){seq=S.seq;ord=S.ord;gi=S.gi;gk=S.gk;gn=S.gn;pcs=S.pcs;root=S.root;firstPlayed=S.fp;view=S.id}
+var CI=CUI-1;
+var KPRE=[
+['Giant Steps keys: B, G, Eb · 4 beats each',{root:'11',scale:'Major',kc:'m3d',kn:'all',kl:'b4',ko:'fix',kq:'last',kd:'full',kr:'2',dir:'ud',seq:String(CI),sub:'2',bpm:'70',kt:'2'}],
+['Giant Steps keys · 2 beats each (fast)',{root:'11',scale:'Major',kc:'m3d',kn:'all',kl:'b2',ko:'fix',kq:'last',kd:'full',kr:'2',dir:'ud',seq:String(CI),sub:'2',bpm:'60',kt:'2'}],
+['All 12 keys, circle of fifths · 1 lap each',{kc:'p5',kn:'all',kl:'l1',ko:'fix',kq:'last',kd:'full',kr:'2',dir:'ud'}],
+['Chromatic keys up · 1 lap each',{kc:'cu',kn:'all',kl:'l1',ko:'fix',kq:'last',kd:'full',kr:'2',dir:'ud'}],
+['6 random keys, blind',{kc:'rnd',kn:'6',kl:'l1',kq:'blind',kd:'full',kr:'2',dir:'ud'}]];
+KPRE.forEach(function(r,i){$('kpre').add(new Option(r[0],i))});
+
+/* ---- keep playing when the phone locks; touch-lock screen ---- */
+var clk=null,clkOK=true,ka=null;
+function startClock(){
+  stopClock();
+  if(clkOK&&window.Worker&&window.Blob&&window.URL){
+    try{
+      if(!clk){
+        clk=new Worker(URL.createObjectURL(new Blob(['var t=null;onmessage=function(e){clearInterval(t);if(e.data=="on")t=setInterval(function(){postMessage(1)},25)}'],{type:'text/javascript'})));
+        clk.onmessage=function(){if(playing&&ctx)sched()};
+        clk.onerror=function(){clkOK=false;try{clk.terminate()}catch(e){}clk=null;if(playing)timer=setInterval(sched,30)};
+      }
+      clk.postMessage('on');return;
+    }catch(e){clkOK=false;clk=null}
+  }
+  timer=setInterval(sched,30);
+}
+function stopClock(){bassStop();if(clk)clk.postMessage('off');clearInterval(timer);timer=null}
+function kaStart(){
+  if(!$('bgp').checked)return;
+  try{
+    if(!ka){
+      var n=800,b=new Uint8Array(44+n),v=new DataView(b.buffer),w=function(o,s){for(var i=0;i<s.length;i++)b[o+i]=s.charCodeAt(i)};
+      w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+      v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,n,true);
+      for(var i=0;i<n;i++)b[44+i]=128;
+      ka=new Audio(URL.createObjectURL(new Blob([b],{type:'audio/wav'})));ka.loop=true;ka.volume=.01;
+    }
+    var pr=ka.play();if(pr&&pr.catch)pr.catch(function(){});
+    var ms=navigator.mediaSession;
+    if(ms){
+      ms.metadata=new MediaMetadata({title:document.title,artist:'Practice session'});ms.playbackState='playing';
+      ms.setActionHandler('pause',function(){if(playing)stop()});
+      ms.setActionHandler('stop',function(){if(playing)stop()});
+      ms.setActionHandler('play',function(){if(!playing&&$('mode').value=='auto')$('play').click()});
+    }
+  }catch(e){}
+}
+function kaStop(){try{if(ka)ka.pause();if(navigator.mediaSession)navigator.mediaSession.playbackState='paused'}catch(e){}}
+var _stop=stop;stop=function(){_stop();kaStop()};
+var _tick=tick;tick=function(){_tick.apply(null,arguments);kaStart()};
+function updateLk(){
+  if(!$('lk').classList.contains('on'))return;
+  var t=$('tleft'),c=$('cur'),sm=c.querySelector('small'),cn=$('cn'),kk=$('kk'),tt=(t&&!t.hidden)?t.textContent:'';
+  $('lkt').textContent=tt=='\u2014'?'':tt;
+  $('lkc').textContent=(cn?cn.textContent:(typeof scaleS!='undefined'?scaleS.value:''))+(kp.on&&kk&&!kk.parentNode.hidden?'   '+kk.textContent:'');
+  $('lkn').textContent=(c.firstChild?c.firstChild.textContent:'')+(sm?' '+sm.textContent:'')+(playing?'':'  (paused)');
+}
+function lockOn(){$('lk').classList.add('on');updateLk();wake(true)}
+function lockOff(){$('lk').classList.remove('on');$('lku').textContent='Hold to unlock'}
+$('lock').onclick=lockOn;
+(function(){
+  var h=null,b=$('lku');
+  function down(e){if(e.preventDefault)e.preventDefault();b.textContent='Keep holding\u2026';clearTimeout(h);h=setTimeout(function(){h=null;lockOff()},800)}
+  function up(){if(h){clearTimeout(h);h=null;b.textContent='Hold to unlock'}}
+  b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);b.addEventListener('pointerleave',up);b.addEventListener('pointercancel',up);
+  b.oncontextmenu=function(){return false};
+  $('lk').addEventListener('touchmove',function(e){e.preventDefault()},{passive:false});
+})();
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden){if(playing&&!$('bgp').checked)stop()}
+  else{if(ctx&&ctx.state!='running')ctx.resume();if(playing){render();wake(true)}}
+  if(typeof padSync=='function')padSync();else if(typeof updateDrone=='function')updateDrone();
+});
+setInterval(updateLk,250);
+/* ---- boxes: shapes, pivots, order, string skipping ---- */
+var bx={on:false,boxes:[],pair:null,pick:0,from:0,msg:''};
+var BSK=[
+['Every other string (1-3, then up)',[[0,0],[2,0]]],
+['Skip pattern 1-3-2-4',[[0,0],[2,0],[1,0],[3,0]]],
+['Wide skip (1-4)',[[0,0],[3,0]]],
+['Skip 1-3-5',[[0,0],[2,0],[4,0]]],
+['Pedal on the low string',[[0,0],[1,0],[0,0],[2,0],[0,0],[3,0]]],
+['Skip with a step (1-3-2-3)',[[0,0],[2,0],[1,0],[2,0]]],
+['Skip down (4-2-3-1)',[[3,0],[1,0],[2,0],[0,0]]],
+['Pairs on skipped strings',[[0,0],[0,1],[2,0],[2,1]]]];
+function bxList(root,iv,W,maxF){
+  var pcs=iv.map(function(x){return PE.pc(x+root)}),B=[],ivn=iv.map(function(x){return PE.pc(x)});
+  for(var s=0;s+W-1<=maxF;s++){
+    if(pcs.indexOf(PE.pc(PE.midi(0,s)))<0)continue;
+    var nt=[];
+    for(var i=0;i<6;i++)for(var f=s;f<=s+W-1;f++){var m=PE.midi(i,f);if(pcs.indexOf(PE.pc(m))>-1)nt.push({m:m,i:i,f:f})}
+    nt.sort(function(a,b){return a.m-b.m||a.i-b.i});
+    var lad=[],seen={};nt.forEach(function(n,k){if(!seen[n.m]){seen[n.m]=1;lad.push(k)}});
+    var rel=PE.pc(PE.midi(0,s)-root),deg=ivn.indexOf(rel)+1;
+    B.push({s:s,e:s+W-1,deg:deg,notes:nt,lad:lad,n:B.length+1});
+  }
+  return B;
+}
+function bxName(b){return 'Box '+b.n+' \u00b7 frets '+b.s+'\u2013'+b.e}
+function bxLink(A,B,root,tones,ent){
+  var asc=B.s>A.s,inB={},sh,best=null,bs=1e9,i,pe=ent?bxPos(A,ent.m):-1;
+  B.notes.forEach(function(n){inB[n.i+'_'+n.f]=n});
+  sh=A.notes.filter(function(n){return inB[n.i+'_'+n.f]});
+  if(sh.length&&pe>-1){
+    var fl=sh.filter(function(n){var q=bxPos(A,n.m);return asc?q-pe>=2:pe-q>=2});
+    if(!fl.length)fl=sh.filter(function(n){var q=bxPos(A,n.m);return asc?q-pe>=1:pe-q>=1});
+    if(fl.length)sh=fl;
+  }
+  if(sh.length){
+    sh.forEach(function(n){var pc=PE.pc(n.m),pr=pc==root?0:(tones&&tones.indexOf(pc)>-1?1:2),sc=pr*1000+(asc?-n.m:n.m);if(sc<bs){bs=sc;best=n}});
+    return {kind:'pivot',a:best,b:inB[best.i+'_'+best.f]};
+  }
+  var bd=1e9,res=null;
+  for(i=0;i<6;i++){
+    var fa=A.notes.filter(function(n){return n.i==i}),fb=B.notes.filter(function(n){return n.i==i});
+    if(!fa.length||!fb.length)continue;
+    var a=asc?fa[fa.length-1]:fa[0],bb=asc?fb[0]:fb[fb.length-1],d=Math.abs(bb.f-a.f);
+    if(d<bd){bd=d;res={kind:'slide',a:a,b:bb,string:i}}
+  }
+  return res||{kind:'slide',a:A.notes[0],b:B.notes[0],string:A.notes[0].i};
+}
+function bxOrder(mode,boxes,cur,pair){
+  var n=boxes.length,up=[],i;for(i=0;i<n;i++)up.push(i);
+  if(mode=='stay')return [Math.min(cur,n-1)];
+  if(mode=='pair'&&pair&&pair[0]<n&&pair[1]<n&&pair[0]!=pair[1])return [pair[0],pair[1]];
+  if(n<2)return [0];
+  if(mode=='down')return up.slice().reverse();
+  if(mode=='ud')return n>2?up.concat(up.slice(1,-1).reverse()):up;
+  if(mode=='mix')return shuf(up.slice());
+  if(mode=='far'){
+    var o=[Math.floor(Math.random()*n)];
+    for(var k=1;k<n;k++){
+      var last=boxes[o[k-1]],c=[],far=-1,fd=-1;
+      up.forEach(function(j){if(j==o[k-1])return;var d=Math.abs(boxes[j].s-last.s);if(d>fd){fd=d;far=j}if(d>=7)c.push(j)});
+      o.push(c.length?c[Math.floor(Math.random()*c.length)]:far);
+    }
+    return o;
+  }
+  return up;
+}
+function bxRun(slice,off,dir,R1,R2){
+  var n=slice.length,od=[];
+  var run=function(dr){
+    if(patOnceNow){var g0=off.map(function(o){return dr>0?o:n-1-o});if(g0.some(function(x){return x<0||x>=n}))return;for(var q2=0;q2<R2;q2++)g0.forEach(function(x){for(var q1=0;q1<R1;q1++)od.push(slice[x])});return}
+    for(var s=dr>0?0:n-1;dr>0?s<n:s>=0;s+=dr){var g=off.map(function(o){return s+dr*o});if(g.some(function(x){return x<0||x>=n}))continue;for(var r2=0;r2<R2;r2++)g.forEach(function(x){for(var r1=0;r1<R1;r1++)od.push(slice[x])})}};
+  if(dir!='down')run(1);
+  if(dir!='up')run(-1);
+  if(!od.length){off=[0];bxFb=true;var sv=patOnceNow;patOnceNow=false;run(1);patOnceNow=sv}
+  if(off.length==1&&!patOnceNow&&dir=='ud'&&n>1){var R=R1*R2;od.splice(n*R,R);od.splice(-R,R)}
+  return od;
+}
+function bxSkip(box,pat,dir,R1,R2){
+  var gr=[[],[],[],[],[],[]],gs=[],s,n;
+  box.notes.forEach(function(nt,k){gr[nt.i].push(k)});
+  var mx=0;pat.forEach(function(p){if(p[0]>mx)mx=p[0]});
+  for(s=0;s+mx<6;s++)for(n=0;n<9;n++){
+    var g=[],ok=true;
+    pat.forEach(function(p){var k=gr[s+p[0]][n+p[1]];if(k===undefined)ok=false;else g.push(k)});
+    if(ok)gs.push(g);
+  }
+  var seqg=dir=='down'?gs.slice().reverse():dir=='ud'?gs.concat(gs.slice().reverse()):gs,od=[];
+  seqg.forEach(function(g){for(var r2=0;r2<R2;r2++)g.forEach(function(x){for(var r1=0;r1<R1;r1++)od.push(x)})});
+  return od;
+}
+function bxPos(box,m,lad){lad=lad||box.lad;for(var j=0;j<lad.length;j++)if(box.notes[lad[j]].m==m)return j;return -1}
+function bxLadder(b,pref){
+  var lad=[],k=0;
+  while(k<b.notes.length){var m=b.notes[k].m,grp=[];while(k<b.notes.length&&b.notes[k].m==m){grp.push(k);k++}
+    var pick=grp[0];grp.forEach(function(q){if(pref&&pref[b.notes[q].i+'_'+b.notes[q].f])pick=q});lad.push(pick)}
+  return lad;
+}
+function bxNoteTxt(n){return PE.name(n.m)+' (string '+(6-n.i)+', fret '+n.f+')'}
+function bxLinkTxt(L){
+  if(!L)return '';
+  return L.kind=='pivot'?'pivot on '+bxNoteTxt(L.a):'slide on string '+(6-L.string)+': fret '+L.a.f+' to fret '+L.b.f;
+}
+
+function fpOf(n,od){var fp=[],z;for(z=0;z<n;z++)fp[z]=1e9;for(z=0;z<od.length;z++)if(fp[od[z]]===1e9)fp[od[z]]=z;return fp}
+function bxIdx(b,n){for(var k=0;k<b.notes.length;k++)if(b.notes[k].i==n.i&&b.notes[k].f==n.f)return k;return -1}
+function bxFill(){
+  var s=$('bxs'),B=bx.boxes;
+  for(var i=0;i<s.options.length;i++){var o=s.options[i];if(i<B.length){o.hidden=false;o.disabled=false;o.textContent=bxName(B[i])+' \u00b7 starts on '+PE.name(PE.midi(0,B[i].s))}else{o.hidden=true;o.disabled=true}}
+  if(+s.value>=B.length)s.value=String(B.length-1);
+}
+function bxChips(){
+  var h='';if($('bm').value=='box'&&!kp.on)bx.boxes.forEach(function(b,k){h+='<button type="button" data-b="'+k+'">'+b.n+'</button>'});
+  $('bch').innerHTML=h;
+}
+function bxRootIdx(r,scn){var iv=SC[scn],L=iv.length,bw=$('bw').value,W=bw=='auto'?(L>7?4:5):+bw,B=bxList(r,iv,W,maxF),i;for(i=0;i<B.length;i++)if(B[i].deg==1)return {idx:i,fb:false,n:B.length};return {idx:0,fb:true,n:B.length}}
+function bxScaleBuild(rootPc,scn,offB,d,R1,R2,sub,ov){
+  var iv=SC[scn],L=iv.length,bw=$('bw').value,W=bw=='auto'?(L>7?4:5):+bw;
+  var pcsS=iv.map(function(x){return PE.pc(x+rootPc)}),tones=[pcsS[0],pcsS[Math.min(2,L-1)],pcsS[Math.min(4,L-1)]];
+  var boxes=bxList(rootPc,iv,W,maxF);if(!ov||ov.first){bx.boxes=boxes;bxFill()}
+  var mode=ov?ov.mode:$('bo').value,cur=ov?ov.cur:Math.min(+$('bxs').value||0,boxes.length-1),sk=$('bsk').value,skip=sk=='off'?null:BSK[+sk][1];
+  var O=[],reps=(mode=='mix'||mode=='far')?6:1,r;
+  for(r=0;r<reps;r++){var c=bxOrder(mode,boxes,cur,bx.pair);if(r>0&&O.length&&c.length>1&&c[0]==O[O.length-1])c.push(c.shift());O=O.concat(c)}
+  var V=O.length,bl=(ov?$('kl'):$('bl')).value,ents=[],exits=[],links=[],asc0=true,v;
+  if(V>1)asc0=boxes[O[1]].s>boxes[O[0]].s;
+  for(v=0;v<V;v++){
+    var bv=boxes[O[v]],entN,exN;
+    if(v==0)entN=asc0?bv.notes[bv.lad[0]]:bv.notes[bv.lad[bv.lad.length-1]];else entN=links[v-1]?links[v-1].b:bv.notes[bv.lad[0]];
+    ents.push(entN);
+    if(v<V-1&&boxes[O[v+1]]!==bv){var lk=bxLink(bv,boxes[O[v+1]],rootPc,tones,entN);links.push(lk);exits.push(lk.a)}
+    else{
+      links.push(null);
+      var ascN=v>0?(bv.s>=boxes[O[v-1]].s):true;
+      exits.push(ascN?bv.notes[bv.lad[bv.lad.length-1]]:bv.notes[bv.lad[0]]);
+    }
+  }
+  var wrap=V>1&&boxes[O[0]]!==boxes[O[V-1]]?bxLink(boxes[O[V-1]],boxes[O[0]],rootPc,tones,exits[V-1]):null;
+  for(v=0;v<V;v++){
+    var b=boxes[O[v]],next=boxes[O[(v+1)%V]],lkIn=v>0?links[v-1]:null,lkOut=v<V-1?links[v]:null,od,pi=-1,po=-1;
+    var pref={};pref[ents[v].i+'_'+ents[v].f]=1;pref[exits[v].i+'_'+exits[v].f]=1;
+    var lad=bxLadder(b,pref);
+    if(skip)od=bxSkip(b,skip,d,R1,R2);
+    else{
+      var slice=lad,dir=d;
+      if(V>1){var e=bxPos(b,ents[v].m,lad),x=bxPos(b,exits[v].m,lad);if(e>-1&&x>-1&&e!=x){slice=e<x?lad.slice(e,x+1):lad.slice(x,e+1).reverse();dir='up'}else if(e>-1&&e==x){slice=[lad[e]];dir='up'}}
+      od=bxRun(slice,offB,dir,R1,R2);
+    }
+    if(!od.length)od=bxRun(lad,[0],'up',1,1);
+    if(bxLp&&V==1&&!skip&&bxLp[0]<b.notes.length&&bxLp[1]<b.notes.length){
+      if($('lps').value=='two')od=[bxLp[0],bxLp[1]];
+      else{var pa=bxPos(b,b.notes[bxLp[0]].m,lad),pb=bxPos(b,b.notes[bxLp[1]].m,lad);if(pa>-1&&pb>-1)od=bxRun(lad.slice(Math.min(pa,pb),Math.max(pa,pb)+1),offB,d,R1,R2)}
+    }
+    var hdv=null;if(PH.on){var pp=phOrd(PH.list,lad,phDeg0(b.notes[lad[0]].m,rootPc,iv),L);od=pp.od;hdv=pp.hd}
+    if(lkIn)pi=bxIdx(b,ents[v]);
+    if(V>1&&(lkOut||v==V-1))po=bxIdx(b,exits[v]);
+    var sid=segs.length,tot=bl[0]=='b'?(+bl.slice(1))*sub:od.length*(+bl.slice(1)),e0=ev.length;
+    var t2=V<2?'Staying in this box':lkOut?'Next: Box '+next.n+' \u2014 '+bxLinkTxt(lkOut):(wrap?'Then back to Box '+next.n+' \u2014 '+(wrap.kind=='pivot'?'jump, shared note ':'jump, ')+bxLinkTxt(wrap):'Same box again');
+    segs.push({id:sid,g:v,seq:b.notes,ord:od,hd:hdv,gi:od.map(function(){return 1}),gk:od.map(function(_,i){return i}),gn:od.length,pcs:pcsS,root:rootPc,fp:fpOf(b.notes.length,od),sp:b.s,
+      box:{k:O[v],n:b.n,s:b.s,e:b.e,po:po,pi:pi,
+        t1:'Box '+b.n+' of '+boxes.length+' \u00b7 frets '+b.s+'\u2013'+b.e+' \u00b7 starts on '+PE.name(PE.midi(0,b.s))+(b.deg==1?' (root box)':' (degree '+b.deg+')'),
+        t2:t2}});
+    for(var t=0;t<tot;t++)ev.push({s:sid,k:od[t%od.length],q:t%od.length,h:hdv?hdv[t%od.length]:1});
+    kp.grp.push({id:v,off:0,ki:v,n:V,cyc:0,s:sid,e0:e0,e1:ev.length-1,laps:1});
+  }
+}
+function bxUi(){
+  var bb=$('bbar'),S=segs[ev[p].s];
+  if($('bm').value!='box'||!S||!S.box){bb.hidden=true;return}
+  bb.hidden=false;var B=S.box,x=B.t2;
+  $('bk1').textContent=B.t1;
+  if($('bo').value=='pair'&&!bx.pair)x=bx.pick==2?'Now tap the box you are moving to':'Tap the box you move from, then the box you move to';
+  $('bk2').textContent=x;
+  var nk=segs[(S.id+1)%segs.length].box.k,cs=$('bch').children;
+  for(var j=0;j<cs.length;j++){var k=+cs[j].getAttribute('data-b');cs[j].className=(k==B.k?'on':'')+(k==nk&&k!=B.k?' nx':'')}
+}
+function bxJump(pos){ac();p=pos;if(playing){stopClock();tick()}else{render();var e=ev[p];pluck(segs[e.s].seq[e.k].m)}}
+$('bch').onclick=function(e){
+  var b=e.target.closest?e.target.closest('button'):null;if(!b)return;
+  var k=+b.getAttribute('data-b'),mode=$('bo').value;
+  if(mode=='stay'){$('bxs').value=String(k);reset();return}
+  if(mode=='pair'){if(bx.pick!=2){bx.pick=2;bx.from=k;bxUi();return}if(k==bx.from)return;bx.pair=[bx.from,k];bx.pick=0;reset();return}
+  for(var i=0;i<segs.length;i++)if(segs[i].box&&segs[i].box.k==k){bxJump(kp.grp[i].e0);return}
+};
+['bm','bw','bo','bxs','bsk','bl'].forEach(function(id){$(id).onchange=function(){if(id!='bxs'){bx.pair=null;bx.pick=0}if(id=='bm'||id=='bw'||id=='bo'||id=='bxs'){loopA=loopB=-1;lpMode=0}reset()}});
+var PHL=[["Ode to Joy (Beethoven)", "3 - 3 - 4 - 5 - 5 - 4 - 3 - 2 - 1 - 1 - 2 - 3 - 3 - - 2 2 - - - 3 - 3 - 4 - 5 - 5 - 4 - 3 - 2 - 1 - 1 - 2 - 3 - 2 - - 1 1 - - -", "Public-domain melody"], ["Twinkle, Twinkle (French folk tune)", "1 - 1 - 5 - 5 - 6 - 6 - 5 - - - 4 - 4 - 3 - 3 - 2 - 2 - 1 - - -", "Public-domain melody"], ["Frere Jacques", "1 - 2 - 3 - 1 - 1 - 2 - 3 - 1 - 3 - 4 - 5 - - - 3 - 4 - 5 - - - 5 6 5 4 3 - 1 - 5 6 5 4 3 - 1 - 1 - 5_ - 1 - - - 1 - 5_ - 1 - - -", "Public-domain melody"], ["Mary Had a Little Lamb", "3 - 2 - 1 - 2 - 3 - 3 - 3 - - - 2 - 2 - 2 - - - 3 - 5 - 5 - - - 3 - 2 - 1 - 2 - 3 - 3 - 3 - 3 - 2 - 2 - 3 - 2 - 1 - - -", "Public-domain melody"], ["Hot Cross Buns", "3 - 2 - 1 - - - 3 - 2 - 1 - - - 1 1 1 1 2 2 2 2 3 - 2 - 1 - - -", "Public-domain melody"], ["Pentatonic climb (original)", "1 - 2 3 5 - 3 2 1 - 5_ 1 3 - 5 - - -", "Original lick"], ["Rising thirds run (original)", "1 3 2 4 3 5 4 6 5 7 6 8 - - - -", "Original run"], ["Octave leap motif (original)", "1 - 8 - 5 - 3 - 1 - - -", "Original motif"], ["Blues turn (original)", "1 - 2 3 - 4 5 - 4 3 2 - 1 - - -", "Original lick"]];
+/* ---- round 2: subdivisions, practice programs, phrases ---- */
+var SDN={1:'quarter notes',2:'eighth notes',3:'triplets',4:'sixteenth notes',5:'quintuplets',6:'sextuplets',7:'septuplets',8:'thirty-second notes'};
+var bxLp=null;
+var rb={beat:0,n:0,sb:2},lastSb=0;
+function rbList(){var t=($('sl').value||'').match(/[1-8]/g);return t&&t.length?t.map(Number):[+$('sub').value||2]}
+function rbAvg(){if($('sm').value=='fix')return +$('sub').value||2;var L=rbList(),s=0;L.forEach(function(x){s+=x});return Math.max(1,Math.round(s/L.length))}
+function rbPick(beat){var m=$('sm').value,L=rbList();if(m=='fix')return +$('sub').value||2;if(m=='beat')return L[beat%L.length];if(m=='bar')return L[Math.floor(beat/4)%L.length];return L[Math.floor(Math.random()*L.length)]}
+function rbDur(sb,n,bl){var sw=+$('sw').value;if(sb==2&&sw>0)return n==0?bl*sw:bl*(1-sw);return bl/sb}
+function sdShow(sb){$('sdv').textContent='Now: '+(SDN[sb]||sb)+' ('+sb+' per beat)'}
+['sm','sl'].forEach(function(id){$(id).onchange=function(){reset()}});
+$('lps').onchange=function(){reset()};
+$('slp').onchange=function(){if(!this.value)return;$('sl').value=this.value;this.value='';reset()};
+
+/* phrases */
+var PH={on:false,list:[],gen:null};
+function phParse(txt){
+  var out=[];(txt||'').trim().split(/\s+/).forEach(function(t){
+    if(t=='-'||t=='.'){if(out.length)out[out.length-1].h++;return}
+    var m=/^(\d+)(['_]*)$/.exec(t);if(!m)return;var n=+m[1];if(n<1||n>21)return;
+    var o=0;m[2].split('').forEach(function(c){o+=c=="'"?1:-1});
+    out.push({n:n-1,o:o,h:1});
+  });
+  return out;
+}
+function phGen(){
+  var len=3+Math.floor(Math.random()*2),m=[],cur=Math.floor(Math.random()*4),st=[-2,-1,1,1,2,3],i;
+  for(i=0;i<len;i++){m.push(cur);cur+=st[Math.floor(Math.random()*st.length)];cur=Math.max(-3,Math.min(9,cur))}
+  var ops=[function(a){return a},function(a){return a.map(function(x){return x+1})},function(a){return a.map(function(x){return x+2})},function(a){return a.map(function(x){return 2*a[0]-x})},function(a){return a.map(function(x){return x-1})},function(a){return a.slice().reverse()}],out=[];
+  ops.forEach(function(f){f(m).forEach(function(x){out.push({n:x,o:0,h:1})})});
+  out.push({n:m[0],o:0,h:4});
+  return out;
+}
+function phDeg0(m,root,iv){var r=PE.pc(m-root),k=iv.map(function(v){return PE.pc(v)}).indexOf(r);return k<0?0:k}
+function phOrd(list,lad,deg0,L){
+  var od=[],hd=[];
+  list.forEach(function(x){
+    var pos=x.n+L*x.o-deg0,g=0;
+    while(pos<0&&g++<8)pos+=L;
+    while(pos>=lad.length&&g++<16)pos-=L;
+    if(pos<0||pos>=lad.length)pos=((pos%lad.length)+lad.length)%lad.length;
+    od.push(lad[pos]);hd.push(x.h);
+  });
+  return {od:od,hd:hd};
+}
+function phSetup(){
+  var v=$('ph').value;PH.on=false;PH.list=[];
+  if(v!='off'){
+    if(v=='gen'){if(!PH.gen)PH.gen=phGen();PH.list=PH.gen}
+    else if(v=='own')PH.list=phParse($('phc').value);
+    else if(PHL[+v])PH.list=phParse(PHL[+v][1]);
+    PH.on=PH.list.length>0;
+  }
+  $('phrow').hidden=v!='own';$('phn').hidden=v!='gen';
+  $('phi').textContent=PH.on?(v=='own'||v=='gen'?PH.list.length+' notes':PHL[+v][2]):'';
+}
+$('ph').onchange=function(){reset()};
+$('phc').onchange=function(){reset()};
+$('phn').onclick=function(){PH.gen=phGen();reset()};
+
+/* practice programs */
+var pg={steps:[],run:false,paused:false,i:0,round:0,t0:0,left:0,dur:0,msg:''};
+var PGK='practiceProgs1';
+function pgStore(){try{return JSON.parse(localStorage.getItem(PGK)||'{}')||{}}catch(e){return {}}}
+function pgPut(o){try{localStorage.setItem(PGK,JSON.stringify(o))}catch(e){}}
+function pgDraft(){try{localStorage.setItem(PGK+'_draft',JSON.stringify({steps:pg.steps,loop:$('pgr').value,tr:$('pgtr').value,ci:$('pgci').value,sh:$('pgo').value}))}catch(e){}}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+function pgUnit(s){return s.u=='b'||s.u=='l'?s.u:'t'}
+function pgDur(s){if(pgUnit(s)=='b'){var bp=s.t=='d'?((+s.b0||+$('bpm').value)+(+s.b1||+$('bpm').value))/2:+$('bpm').value;return Math.max(1,Math.round((+s.n||1)*240/bp))}return Math.max(1,Math.round((+s.min||0)*60+(+s.sec||0)))}
+function pgFmt(ms){var s=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),r=s%60;return (h?h+':'+(m<10?'0':''):'')+m+':'+(r<10?'0':'')+r}
+function pgSnap(){
+  var o={};
+  SAVE.forEach(function(id){if(id=='bpm'||id=='tm'||id=='timer')return;var e=$(id);if(e)o[id]=e.value});
+  CHK.forEach(function(id){var e=$(id);if(e)o[id]=e.checked});
+  if(loopA>=0&&loopB>=0)o._lp=[loopA,loopB];
+  if(typeof bx!='undefined'&&bx.pair)o._bp=bx.pair.slice();
+  if(kp.pair)o._kp=kp.pair.slice();
+  return o;
+}
+function pgApply(o){
+  if(!('cvs' in o))$('cvs').value='0-5';if(!('cvo' in o))$('cvo').value='all';if(!('oj' in o))$('oj').value='auto';if(!('cum' in o))$('cum').value='slide';if(!('bf' in o))$('bf').value='cont';if(!('kcu' in o))$('kcu').value='1 1 1 1 1 1';if(!('bass' in o))$('bass').value='off';if(!('bvol' in o))$('bvol').value='50';if(!('bkc' in o))$('bkc').value='note';if(!('pm3' in o))$('pm3').value='0';if(!('pm4' in o))$('pm4').value='0';if(!('pp' in o))$('pp').value='auto';if(!('px' in o))$('px').value='any';if(!('pi' in o))$('pi').value='0';if(!('pl' in o))$('pl').value='';
+  for(var id in o){
+    var e=$(id);if(!e)continue;
+    if(typeof o[id]=='boolean'){e.checked=o[id];continue}
+    if(e.tagName=='SELECT'){if([].some.call(e.options,function(x){return x.value==o[id]}))e.value=o[id]}else e.value=o[id];
+  }
+}
+var KCN={m3d:'major thirds down',m3u:'major thirds up',mn3:'minor thirds',mn3d:'minor thirds down',wt:'whole tones',wtd:'whole tones down',p4:'fourths',p5:'fifths',cu:'chromatic up',cd:'chromatic down',cust:'your own steps',rnd:'random keys'};
+var BON={stay:'one box',up:'climbing',down:'coming down',ud:'up and down',mix:'random boxes',far:'far jumps',pair:'two boxes'};
+function pgSum(sn){
+  if(!sn)return '';
+  var a=[];
+  if(sn.prog)a.push(String(sn.prog).slice(0,26));
+  else{
+    a.push(sn.bm=='box'?'Boxes':'Whole neck');
+    if(sn.root!==undefined&&sn.scale)a.push(KN[+sn.root]+' '+sn.scale);
+    if(sn.bm=='box'&&sn.bo)a.push(BON[sn.bo]||'');
+    if(sn.kc&&sn.kc!='off')a.push('through '+(KCN[sn.kc]||sn.kc));
+    if(sn._lp)a.push(sn.lps=='two'?'two-note loop':'section loop');
+  }
+  if(sn.ph&&sn.ph!='off')a.push('phrase');
+  a.push((SDN[+sn.sub]||'')+(sn.sm&&sn.sm!='fix'?' (mixed)':''));
+  return a.filter(Boolean).join(' \u00b7 ');
+}
+function setBpm(v){v=Math.max(30,Math.min(300,Math.round(v)));$('bpm').value=v;$('bv').textContent=v+' BPM'}
+function pgTotal(){
+  var t=0,lapN=0;pg.steps.forEach(function(s){if(pgUnit(s)=='l')lapN+=(+s.n||1);else t+=pgDur(s)});var lp=+$('pgr').value;
+  var ex=lapN?' plus '+lapN+(lapN==1?' lap':' laps'):'';
+  $('pgt').textContent=lp==0?pgFmt(t*1000)+ex+' per round, repeating':pgFmt(t*1000*lp)+(lapN?' plus '+lapN*lp+(lapN*lp==1?' lap':' laps'):'');
+}
+function pgRender(){
+  var h='';
+  pg.steps.forEach(function(s,i){
+    var dr=s.t=='d',ix=' data-i="'+i+'"';
+    h+='<div class="pgc"><div class="pgh"><b>'+(i+1)+'. '+(dr?'Drill':'Rest')+'</b><span><button type="button" data-a="up"'+ix+' aria-label="Move up">\u2191</button> <button type="button" data-a="down"'+ix+' aria-label="Move down">\u2193</button> <button type="button" data-a="dup"'+ix+'>Copy</button> <button type="button" data-a="del"'+ix+'>Delete</button></span></div>';
+    var un=pgUnit(s);
+    h+='<div class="pgr" style="grid-template-columns:'+(un=='t'?'2fr 1.4fr 1fr 1fr':'2fr 1.4fr 1fr')+'"><div><label>Name</label><input type="text"'+ix+' data-f="label" value="'+esc(s.label)+'"></div><div><label>Length in</label><select'+ix+' data-f="u"><option value="t"'+(un=='t'?' selected':'')+'>Time</option><option value="b"'+(un=='b'?' selected':'')+'>Bars</option>'+(dr?'<option value="l"'+(un=='l'?' selected':'')+'>Laps</option>':'')+'</select></div>'
+     +(un=='t'?'<div><label>Min</label><input type="number" inputmode="numeric" min="0" max="180"'+ix+' data-f="min" value="'+(+s.min||0)+'"></div><div><label>Sec</label><input type="number" inputmode="numeric" min="0" max="59"'+ix+' data-f="sec" value="'+(+s.sec||0)+'"></div>':'<div><label>'+(un=='b'?'Bars':'Laps')+'</label><input type="number" inputmode="numeric" min="1" max="999"'+ix+' data-f="n" value="'+(+s.n||1)+'"></div>')+'</div>';
+    if(dr)h+='<div class="pgr" style="grid-template-columns:1fr 1fr 2fr"><div><label>Start BPM</label><input type="number" inputmode="numeric" min="30" max="300"'+ix+' data-f="b0" value="'+s.b0+'"></div><div><label>End BPM</label><input type="number" inputmode="numeric" min="30" max="300"'+ix+' data-f="b1" value="'+s.b1+'"></div><div class="pgs">'+esc(pgSum(s.snap))+'<br><button type="button" data-a="snap"'+ix+'>Use current settings</button></div></div>';
+    h+='</div>';
+  });
+  $('pgl').innerHTML=h||'<div class="cnt">No steps yet. Set up a drill on screen, then tap "Add drill from current settings".</div>';
+  pgTotal();pgDraft();pgNote();
+}
+$('pgl').addEventListener('input',function(e){
+  var el=e.target,i=el.getAttribute('data-i'),f=el.getAttribute('data-f');if(i===null||!f)return;
+  if(f=='u'){pg.steps[+i].u=el.value;pgRender();return}
+  pg.steps[+i][f]=f=='label'?el.value:(+el.value||0);pgTotal();pgDraft();
+});
+$('pgl').addEventListener('click',function(e){
+  var b=e.target.closest?e.target.closest('button'):null;if(!b)return;
+  var a=b.getAttribute('data-a'),i=+b.getAttribute('data-i'),A=pg.steps,t;
+  if(a=='up'&&i>0){t=A[i];A[i]=A[i-1];A[i-1]=t}
+  else if(a=='down'&&i<A.length-1){t=A[i];A[i]=A[i+1];A[i+1]=t}
+  else if(a=='dup')A.splice(i+1,0,JSON.parse(JSON.stringify(A[i])));
+  else if(a=='del')A.splice(i,1);
+  else if(a=='snap'){A[i].snap=pgSnap()}
+  pgRender();
+});
+$('pgad').onclick=function(){
+  var n=pg.steps.filter(function(s){return s.t=='d'}).length+1,b=+$('bpm').value;
+  pg.steps.push({t:'d',label:'Drill '+n,min:5,sec:0,b0:b,b1:b,snap:pgSnap()});pgRender();
+};
+$('pgar').onclick=function(){pg.steps.push({t:'r',label:'Rest',min:1,sec:0});pgRender()};
+$('pgr').onchange=function(){pgTotal();pgDraft()};
+['pgtr','pgci','pgo'].forEach(function(id){$(id).onchange=function(){pgDraft();pgNote()}});
+function pgFill(sel){
+  var st=pgStore(),s=$('pgs');s.innerHTML='<option value="">New program</option>';
+  Object.keys(st).forEach(function(k){s.add(new Option(k,k))});s.value=sel&&st[sel]?sel:'';
+}
+$('pgs').onchange=function(){
+  var st=pgStore(),k=this.value;
+  if(k&&st[k]){pg.steps=JSON.parse(JSON.stringify(st[k].steps));$('pgr').value=String(st[k].loop);$('pgn').value=k;$('pgtr').value=st[k].tr||'restart';$('pgci').value=st[k].ci||'0';$('pgo').value=st[k].sh||'as'}
+  else{pg.steps=[];$('pgn').value='';$('pgtr').value='restart';$('pgci').value='0';$('pgo').value='as'}
+  pgRender();
+};
+$('pgsv').onclick=function(){
+  var k=pgxName($('pgn').value||'').trim();if(!($('pgn').value||'').trim()){k=''}
+  if(!k){pg.msg='Type a name for the program first';pgShow();return}
+  var st=pgStore();st[k]={steps:JSON.parse(JSON.stringify(pg.steps)),loop:+$('pgr').value,tr:$('pgtr').value,ci:$('pgci').value,sh:$('pgo').value};pgPut(st);pgFill(k);
+  pg.msg='Saved "'+k+'"';pgShow();setTimeout(function(){if(!pg.run){pg.msg='';pgShow()}},4000);
+};
+$('pgdl').onclick=function(){
+  var k=$('pgs').value;if(!k)return;var st=pgStore();delete st[k];pgPut(st);pgFill('');pg.steps=[];$('pgn').value='';pgRender();
+};
+/* ---- programs: versioned file format, safe import, export, duplicate, examples ---- */
+var PGX_VER=2,PGX_LOOPS=['0','1','2','3','4','5','10'],PGX_BAD={'__proto__':1,'constructor':1,'prototype':1,'toString':1,'hasOwnProperty':1,'valueOf':1};
+function pgxName(k){k=String(k==null?'':k).replace(/[\u0000-\u001f]/g,' ').trim().slice(0,40);if(!k)k='Program';if(PGX_BAD[k])k=k+' (program)';return k}
+function pgxUnique(k,st,suffix){var n=1,t=suffix?k+' ('+suffix+')':k;while(Object.prototype.hasOwnProperty.call(st,t)){n++;t=suffix?k+' ('+suffix+' '+n+')':k+' ('+n+')'}return t}
+function pgxSnap(sn,w){
+  var o={},ok=SAVE.concat(CHK);
+  if(!sn||typeof sn!='object'||Array.isArray(sn))return o;
+  Object.keys(sn).forEach(function(k){
+    var v=sn[k];
+    if(k=='_lp'||k=='_kp'||k=='_bp'){if(Array.isArray(v)&&v.length==2&&v.every(function(x){return typeof x=='number'&&isFinite(x)&&x>=0&&x<=100000}))o[k]=[Math.floor(v[0]),Math.floor(v[1])];else w.n++;return}
+    if(k=='bpm'||k=='tm'||k=='timer'||ok.indexOf(k)<0){w.n++;return}
+    var e=$(k);if(!e){w.n++;return}
+    if(CHK.indexOf(k)>=0){if(typeof v=='boolean')o[k]=v;else w.n++;return}
+    if(typeof v=='number')v=String(v);
+    if(typeof v!='string'||v.length>200){w.n++;return}
+    if(e.tagName=='SELECT'&&k!='bxs'&&![].some.call(e.options,function(x){return x.value==v})){w.n++;return}
+    if(k=='bxs'&&!/^\d{1,3}$/.test(v)){w.n++;return}
+    if(e.type=='range'&&!(isFinite(+v)&&+v>=0&&+v<=300)){w.n++;return}
+    o[k]=v;
+  });
+  return o;
+}
+function pgxNum(v,lo,hi,d){v=+v;if(!isFinite(v))return d;return Math.min(hi,Math.max(lo,Math.round(v)))}
+function pgxStep(x,w){
+  if(!x||typeof x!='object')return null;
+  var rest=x.t=='r',o={t:rest?'r':'d',label:String(x.label==null?(rest?'Rest':'Drill'):x.label).replace(/[\u0000-\u001f]/g,' ').slice(0,40),u:x.u=='b'||(x.u=='l'&&!rest)?x.u:'t',n:pgxNum(x.n,1,999,1),min:pgxNum(x.min,0,180,0),sec:pgxNum(x.sec,0,59,0)};
+  if(o.u=='t'&&!o.min&&!o.sec)o.sec=30;
+  if(!rest){o.b0=pgxNum(x.b0,30,300,100);o.b1=pgxNum(x.b1,30,300,o.b0);o.snap=pgxSnap(x.snap,w)}
+  return o;
+}
+function pgxProg(p,name,w){
+  if(!p||typeof p!='object')return null;
+  var st=Array.isArray(p.steps)?p.steps.slice(0,60):[],steps=[];
+  st.forEach(function(x){var s=pgxStep(x,w);if(s)steps.push(s);else w.n++});
+  if(!steps.length)return null;
+  return {name:pgxName(name!=null?name:p.name),loop:+(PGX_LOOPS.indexOf(String(p.loop))>=0?p.loop:1),tr:['restart','bar','beat13','now'].indexOf(p.tr)>=0?p.tr:'restart',ci:['0','1','2'].indexOf(String(p.ci))>=0?String(p.ci):'0',sh:p.sh=='shuf'?'shuf':'as',steps:steps};
+}
+function pgxParse(text){
+  var R={programs:[],exercises:[],paths:[],w:{n:0},note:'',err:''},j;
+  text=String(text==null?'':text).trim();
+  if(!text){R.err='Nothing to import. Paste the exported text or choose a file.';return R}
+  if(text.length>2000000){R.err='That file is too big to be a program file.';return R}
+  try{j=JSON.parse(text)}catch(e){R.err='That does not look like a Scale Trainer file. It could not be read.';return R}
+  if(!j||typeof j!='object'){R.err='That does not look like a Scale Trainer file.';return R}
+  var progs=[],exs=[],paths=[];
+  if(!Array.isArray(j)&&j.format=='scale-trainer'){
+    if(+j.version>PGX_VER)R.note='This file was made by a newer version, so settings this version does not know are ignored. ';
+    progs=Array.isArray(j.programs)?j.programs:[];exs=Array.isArray(j.exercises)?j.exercises:[];paths=Array.isArray(j.paths)?j.paths:[];
+  }else if(Array.isArray(j)){progs=j}
+  else{   /* the plain list this app has always kept: { "name": {steps, loop} } */
+    var ks=Object.keys(j);if(ks.length&&ks.every(function(k){return j[k]&&typeof j[k]=='object'&&Array.isArray(j[k].steps)}))progs=ks.map(function(k){var q=j[k];q.name=k;return q});
+    else if(Array.isArray(j.steps))progs=[j];
+  }
+  progs.slice(0,50).forEach(function(p){var c=pgxProg(p,p&&p.name,R.w);if(c)R.programs.push(c);else R.w.n++});
+  exs.slice(0,50).forEach(function(x){if(x&&typeof x=='object'){R.exercises.push({label:String(x.label||'Imported exercise').replace(/[\u0000-\u001f]/g,' ').slice(0,40),snap:pgxSnap(x.snap,R.w)})}});
+  paths.slice(0,200).forEach(function(x){if(x&&typeof x.sig=='string'&&pgParse(x.sig))R.paths.push({n:String(x.n||x.sig).replace(/[\u0000-\u001f]/g,' ').slice(0,60),sig:x.sig});else R.w.n++});
+  if(!R.programs.length&&!R.exercises.length&&!R.paths.length)R.err='That file has no programs, exercises or paths this app can use.';
+  return R;
+}
+function pgxCurProg(){return {name:pgxName($('pgn').value||'My program'),loop:+$('pgr').value,tr:$('pgtr').value,ci:$('pgci').value,sh:$('pgo').value,steps:JSON.parse(JSON.stringify(pg.steps))}}
+function pgxBuild(scope){
+  var o={format:'scale-trainer',version:PGX_VER,app:'Scale Trainer',exported:new Date().toISOString(),programs:[],exercises:[],paths:[]};
+  if(scope=='one')o.programs.push(pgxCurProg());
+  else if(scope=='all'){var st=pgStore();Object.keys(st).forEach(function(k){var q=JSON.parse(JSON.stringify(st[k]));q.name=k;o.programs.push(q)});o.paths=pgSaved()}
+  else if(scope=='ex')o.exercises.push({label:pgxName($('pgn').value||'Exercise')+' exercise',snap:pgSnap()});
+  else if(scope=='paths')o.paths=pgSaved();
+  return o;
+}
+function pgxSay(t){$('pgxm').textContent=t}
+function pgxImport(text){
+  var R=pgxParse(text);if(R.err){pgxSay(R.err);return R}
+  var st=pgStore(),ren=0,lastName='';
+  R.programs.forEach(function(p){var nm=pgxUnique(p.name,st,'');if(nm!==p.name)ren++;st[nm]={steps:p.steps,loop:p.loop,tr:p.tr,ci:p.ci,sh:p.sh};lastName=nm});
+  if(R.programs.length)pgPut(st);
+  var sv=pgSaved(),addP=0;R.paths.forEach(function(x){if(!sv.some(function(y){return y.sig==x.sig})){sv.push(x);addP++}});if(addP)pgPutSaved(sv);
+  var addE=0;R.exercises.forEach(function(x){pg.steps.push({t:'d',label:x.label,u:'t',n:1,min:1,sec:0,b0:+$('bpm').value,b1:+$('bpm').value,snap:x.snap});addE++});
+  pgFill(lastName||$('pgs').value);if(lastName){$('pgs').value=lastName;$('pgs').onchange()}else if(addE){pgRender()}
+  pgShown='';pgUi();
+  var t=[];if(R.programs.length)t.push(R.programs.length+(R.programs.length==1?' program':' programs')+(ren?' ('+ren+' renamed so nothing was replaced)':''));
+  if(addE)t.push(addE+(addE==1?' exercise added to the open program':' exercises added to the open program'));
+  if(addP)t.push(addP+(addP==1?' path':' paths'));else if(R.paths.length)t.push('paths already saved');
+  pgxSay('Imported '+t.join(', ')+'. '+R.note+(R.w.n?R.w.n+' unknown or invalid '+(R.w.n==1?'setting was':'settings were')+' left out.':''));
+  return R;
+}
+function pgxDeliver(text,scope){
+  var slug=(scope=='all'?'all-programs':scope=='paths'?'paths':scope=='ex'?'exercise':pgxName($('pgn').value||'program').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'program'),fname='scale-trainer-'+slug+'.json',done='';
+  $('pgxt').value=text;
+  try{if(navigator.canShare&&window.File){var f=new File([text],fname,{type:'application/json'});if(navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Scale Trainer'}).catch(function(){});done='Opened the share sheet. '}}}catch(e){}
+  if(!done){try{var b=new Blob([text],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},4000);done='Saved '+fname+' to your downloads. '}catch(e){}}
+  return done;
+}
+$('pgxb').onclick=function(){
+  var sc=$('pgxs').value,o=pgxBuild(sc);
+  if(sc=='one'&&!pg.steps.length){pgxSay('This program has no steps yet.');return}
+  if(sc=='all'&&!o.programs.length&&!o.paths.length){pgxSay('You have no saved programs or paths yet.');return}
+  if(sc=='paths'&&!o.paths.length){pgxSay('You have no saved paths yet.');return}
+  var text=JSON.stringify(o,null,1),d=pgxDeliver(text,sc),n=[];
+  if(o.programs.length)n.push(o.programs.length+(o.programs.length==1?' program':' programs'));if(o.exercises.length)n.push('1 exercise');if(o.paths.length)n.push(o.paths.length+(o.paths.length==1?' path':' paths'));
+  pgxSay('Exported '+n.join(', ')+'. '+d+'The text is also in the box, so you can copy it.');
+};
+$('pgxc').onclick=function(){
+  var t=$('pgxt').value;if(!t){pgxSay('There is nothing to copy yet. Tap Export first.');return}
+  var ok=false;try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t);ok=true}}catch(e){}
+  if(!ok){try{$('pgxt').select();ok=document.execCommand('copy')}catch(e){}}
+  pgxSay(ok?'Copied.':'Could not copy automatically. Select the text in the box and copy it.');
+};
+$('pgxi').onclick=function(){pgxImport($('pgxt').value)};
+$('pgxf').onchange=function(){
+  var f=this.files&&this.files[0];if(!f)return;
+  if(f.size>2000000){pgxSay('That file is too big to be a program file.');this.value='';return}
+  var r=new FileReader();r.onload=function(){$('pgxt').value=String(r.result||'');pgxImport($('pgxt').value)};r.onerror=function(){pgxSay('That file could not be read.')};r.readAsText(f);this.value='';
+};
+$('pgdu').onclick=function(){
+  if(!pg.steps.length){pgxSay('Add some steps first, then duplicate.');return}
+  var st=pgStore(),base=pgxName(($('pgn').value||'Program').replace(/ \(copy( \d+)?\)$/,'')),nm=pgxUnique(base,st,'copy');
+  st[nm]={steps:JSON.parse(JSON.stringify(pg.steps)),loop:+$('pgr').value,tr:$('pgtr').value,ci:$('pgci').value,sh:$('pgo').value};pgPut(st);pgFill(nm);$('pgn').value=nm;pgxSay('Duplicated as "'+nm+'". Change it and tap Save program.');
+};
+/* the eight example programs; each step lists only what differs from the plain defaults */
+var EXB={bm:'route',root:'0',scale:'Major',cvs:'0-5',cvo:'0-0',oj:'closed',seq:'0',dir:'ud',sub:'2',kc:'off',pp:'auto',bass:'off',drone:'off'};
+function exs(label,n,b0,o,b1){var c={},k;for(k in EXB)c[k]=EXB[k];for(k in o)c[k]=o[k];return {t:'d',label:label,u:'b',n:n,b0:b0,b1:b1||b0,cfg:c}}
+var EXDEF=[
+ {name:'DAILY SCALE FLUENCY',tr:'bar',ci:'1',steps:[
+  exs('Major, one octave, closed',4,70,{drone:'root'}),
+  exs('Major, two octaves, chained',6,80,{cvo:'0-1',oj:'chained',drone:'root'}),
+  exs('Thirds across the octave',4,80,{seq:'1',dir:'up',pp:'bal'}),
+  exs('Natural minor, one octave',4,80,{scale:'Natural minor',drone:'root'}),
+  exs('Around the circle of fifths',12,90,{kc:'p5',kn:'all',kl:'l1',dir:'up'})]},
+ {name:'MAJOR SCALE NAVIGATION',tr:'bar',ci:'1',steps:[
+  exs('One string: the low E string',4,70,{cvs:'0-0',cvo:'all',drone:'root'}),
+  exs('Two strings: 6 and 5',4,70,{cvs:'0-1',drone:'root'}),
+  exs('Three strings: 4, 3 and 2',4,70,{cvs:'2-4',drone:'root'}),
+  exs('Boxes, climbing the neck',8,70,{bm:'box',bo:'up',bl:'l1',dir:'up',drone:'root'}),
+  exs('Whole neck, three octaves chained',8,80,{cvo:'0-2',oj:'chained',bf:'pad'})]},
+ {name:'PENTATONIC MASTERY',tr:'bar',ci:'1',steps:[
+  exs('G major pentatonic, root position, key by key',16,70,{bm:'box',scale:'Major pentatonic',root:'7',kc:'cust',kcu:'1 1 1 1 1 1',kl:'l2',dir:'up',drone:'triad'}),
+  exs('A minor pentatonic, boxes climbing',8,70,{bm:'box',scale:'Minor pentatonic',root:'9',bo:'up',bl:'l1',dir:'up',drone:'triad'}),
+  exs('Blues scale, groups of four',6,76,{scale:'Blues',root:'9',seq:'8',cvo:'0-0',oj:'chained',dir:'up',drone:'root'}),
+  exs('G major pentatonic, thirds',6,76,{scale:'Major pentatonic',root:'7',seq:'1',pp:'bal',dir:'up',drone:'triad'})]},
+ {name:'THREE-OCTAVE GUITAR WORKOUT',tr:'bar',ci:'1',steps:[
+  exs('Straight scale, three octaves',8,70,{cvo:'0-2',oj:'chained',bf:'pad'}),
+  exs('Thirds, three octaves',8,70,{cvo:'0-2',oj:'chained',seq:'1',dir:'up',bf:'pad'}),
+  exs('Fourths, three octaves',8,70,{cvo:'0-2',oj:'chained',seq:'2',dir:'up',bf:'pad'}),
+  exs('Triads up and back, three octaves',8,70,{cvo:'0-2',oj:'chained',seq:'16',dir:'up',bf:'pad'}),
+  exs('Groups of four, three octaves',8,80,{cvo:'0-2',oj:'chained',seq:'8',dir:'up',bf:'pad'})]},
+ {name:'INTERVAL RECOGNITION',tr:'bar',ci:'1',steps:[
+  exs('Thirds',4,60,{cvo:'0-1',oj:'chained',seq:'1',dir:'up',drone:'root',bass:'bar'}),
+  exs('Fourths',4,60,{cvo:'0-1',oj:'chained',seq:'2',dir:'up',drone:'root',bass:'bar'}),
+  exs('Fifths',4,60,{cvo:'0-1',oj:'chained',seq:'3',dir:'up',drone:'root',bass:'bar'}),
+  exs('Sixths',4,60,{cvo:'0-1',oj:'chained',seq:'4',dir:'up',drone:'root',bass:'bar'}),
+  exs('Sevenths',4,60,{cvo:'0-1',oj:'chained',seq:'5',dir:'up',drone:'root',bass:'bar'}),
+  exs('Octaves',4,60,{cvo:'0-1',oj:'chained',seq:'6',dir:'up',drone:'root',bass:'bar'})]},
+ {name:'CHROMATIC FLUENCY',tr:'bar',ci:'1',steps:[
+  exs('Chromatic, triplets, chained',4,70,{scale:'Chromatic',oj:'chained',dir:'up',sub:'3'}),
+  exs('Chromatic, sixteenths, chained',4,60,{scale:'Chromatic',oj:'chained',dir:'up',sub:'4'}),
+  exs('Chromatic, up and down, eighths',4,70,{scale:'Chromatic',oj:'chained',dir:'ud'}),
+  exs('Chromatic in every key',12,70,{scale:'Chromatic',oj:'chained',dir:'up',sub:'3',kc:'cu',kn:'all',kl:'l1',bass:'b13'})]},
+ {name:'WORSHIP GUITAR TECHNIQUE',tr:'bar',ci:'1',steps:[
+  exs('G major pentatonic, boxes climbing',8,64,{bm:'box',scale:'Major pentatonic',root:'7',bo:'up',bl:'l1',dir:'up',drone:'triad',bass:'b13',bkc:'bar'}),
+  exs('G major, thirds',6,64,{root:'7',seq:'1',dir:'up',drone:'triad',bass:'b13',bkc:'bar'}),
+  exs('G major, sixths',6,64,{root:'7',cvo:'0-1',oj:'chained',seq:'4',dir:'up',drone:'triad',bass:'b13',bkc:'bar'}),
+  exs('The keys of G, D, A and E',8,68,{root:'7',dir:'up',kc:'cust',kcu:'7 7 7',kl:'l1',drone:'triad',bass:'b13',bkc:'bar'})]},
+ {name:'FULL FRETBOARD NAVIGATION',tr:'bar',ci:'1',steps:[
+  exs('Whole neck, lowest note to highest',8,60,{cvo:'all',oj:'auto'}),
+  exs('Balanced path through one octave',4,70,{pp:'bal'}),
+  exs('Low-string dominant path',4,70,{pp:'low',px:'5'}),
+  exs('High-string dominant path',4,70,{pp:'high',px:'5'}),
+  exs('Mixed, alternating path',4,70,{pp:'mix'}),
+  exs('Three octaves, thirds, balanced path',8,70,{cvo:'0-2',oj:'chained',seq:'1',dir:'up',pp:'bal',bf:'pad'}),
+  exs('Giant Steps keys, one octave each',12,70,{kc:'m3d',kn:'all',kl:'l1',dir:'up',bass:'beat'})]}
+];
+var PGDEF=null;
+function pgFull(cfg){var o={};Object.keys(PGDEF||{}).forEach(function(k){if(CHK.indexOf(k)<0)o[k]=PGDEF[k]});Object.keys(cfg).forEach(function(k){o[k]=String(cfg[k])});return o}
+function pgExProgram(i){
+  var d=EXDEF[i];return {name:d.name,loop:1,tr:d.tr,ci:d.ci,sh:'as',steps:d.steps.map(function(x){return {t:'d',label:x.label,u:x.u,n:x.n,min:0,sec:0,b0:x.b0,b1:x.b1,snap:pgFull(x.cfg)}})};
+}
+EXDEF.forEach(function(d,i){$('pgex').add(new Option(d.name,i))});
+$('pgex').onchange=function(){
+  if(this.value==='')return;var P=pgExProgram(+this.value);
+  pg.steps=P.steps;$('pgr').value='1';$('pgtr').value=P.tr;$('pgci').value=P.ci;$('pgo').value='as';$('pgn').value=P.name;$('pgs').value='';
+  pgRender();pgxSay('Loaded the example "'+P.name+'" ('+P.steps.length+' steps). Press Start program to play it, or change it and tap Save program to keep your own copy.');this.value='';
+};
+function pgChime(fin){
+  if(!ctx||!master)return;
+  var t=ctx.currentTime+.05;
+  (fin?[784,988,1175]:[880,1175]).forEach(function(f,i){
+    var o=ctx.createOscillator(),g=ctx.createGain(),s=t+i*.16;
+    o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.22,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+.7);
+    o.connect(g);g.connect(master);o.start(s);o.stop(s+.8);
+  });
+}
+function pgShow(){
+  var b=$('pgbar');
+  if(!pg.run&&!pg.msg){b.hidden=true;return}
+  b.hidden=false;
+  if(!pg.run){$('pg1').textContent=pg.msg;$('pg2').textContent='';$('pg3').textContent='';return}
+  var s=pg.steps[pg.i],n=pg.steps.length,nx=pg.cont&&pg.order?pg.steps[pg.order[(pg.oi+1)%n]]:pg.steps[(pg.i+1)%n],lp=+$('pgr').value;
+  $('pg1').textContent=(s.t=='d'?'Drill':'Rest')+' \u00b7 '+(s.label||'')+'  \u00b7  '+(pg.txt!=null?pg.txt:pgFmt(pg.left));
+  $('pg2').textContent='Step '+(pg.i+1)+' of '+n+(lp!=1?' \u00b7 round '+(pg.round+1)+(lp?' of '+lp:''):'')+(s.t=='d'?' \u00b7 tempo '+$('bpm').value+(s.b0!=s.b1?' (ramping '+s.b0+' to '+s.b1+')':'')+' BPM':'')+(pg.paused?' \u00b7 paused':'');
+  $('pg3').textContent=(pg.i+1<n||lp!=1)?'Next: '+(nx.t=='d'?'Drill':'Rest')+' \u00b7 '+nx.label+' ('+(pgUnit(nx)=='l'?(+nx.n||1)+(+nx.n==1?' lap':' laps'):pgFmt(pgDur(nx)*1000))+')':'Last step';
+}
+/* ---- continuous programs: the exercise changes on the audio clock; the beat, the metronome and the tempo carry on ---- */
+var PX=null;
+function pgNote(){
+  var t='',tr=$('pgtr').value,L=pg.steps.some(function(x){return pgUnit(x)=='l'}),B=pg.steps.some(function(x){return pgUnit(x)=='b'});
+  if(tr=='restart'&&L)t='Steps measured in laps need "Keep the beat going". Pick one of those above.';
+  else if(tr=='restart'&&B)t='In "Restart the beat" mode, bars are turned into time using each step\'s tempo.';
+  else if(tr!='restart'&&pg.steps.some(function(x){return x.t=='d'&&((x.snap||{}).sm||'fix')!='fix'}))t='A drill with a changing note length per beat still changes at the right beat, but its bars are counted in beats.';
+  $('pgw').textContent=t;
+}
+function pgOrder(){
+  var a=pg.steps.map(function(_,i){return i});
+  if($('pgo').value=='shuf')for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}
+  return a;
+}
+function pxLoad(st){
+  var sn=JSON.parse(JSON.stringify(st.snap||{}));delete sn.click;delete sn.tone;delete sn.bgp;   /* metronome and sound stay global */
+  pgApply(sn);kpClr();kp.pair=null;kp.pick=0;if(typeof bx!='undefined'){bx.pair=null;bx.pick=0}
+  if(sn._lp){loopA=sn._lp[0];loopB=sn._lp[1]}else{loopA=loopB=-1;lpMode=0}
+  if(sn._kp)kp.pair=sn._kp.slice();if(sn._bp)bx.pair=sn._bp.slice();
+  $('mode').value='auto';build();
+}
+/* ---- BACKING: drone and bass share the audio clock with the notes and the metronome ---- */
+var BK={root:-1,want:-1,dirty:false,note:null};
+function bassOn(){return $('bass').value!='off'&&ctx&&playing}
+function bassMidi(r){return 28+PE.pc(r-4)}      /* root in the low register: E1 (28) to D#2 (39) */
+function bassCut(t){
+  var n=BK.note;if(!n)return;
+  if(n.end>t){var tf=Math.max(ctx.currentTime,t-.03);n.g.gain.cancelScheduledValues(tf);n.g.gain.setTargetAtTime(0,tf,.006);n.o.forEach(function(o){try{o.stop(t)}catch(x){}});n.end=t}
+  BK.note=null;
+}
+function bassStop(){var n=BK.note;if(!n||!ctx)return;var t=ctx.currentTime;n.g.gain.cancelScheduledValues(t);n.g.gain.setTargetAtTime(0,t,.008);n.o.forEach(function(o){try{o.stop(t+.04)}catch(x){}});BK.note=null}
+function bassNote(m,t,dur){
+  var v=($('bvol').value/100)*.5;if(v<=0||dur<=.12)return;
+  var g=ctx.createGain(),g2=ctx.createGain(),o1=ctx.createOscillator(),o2=ctx.createOscillator(),end=t+dur;
+  o1.type='sine';o1.frequency.value=PE.freq(m);o2.type='sine';o2.frequency.value=PE.freq(m)*2;g2.gain.value=.3;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.012);g.gain.setTargetAtTime(v*.65,t+.06,.35);g.gain.setTargetAtTime(0,end-.07,.012);
+  o1.connect(g);o2.connect(g2);g2.connect(g);g.connect(master);
+  o1.start(t);o2.start(t);o1.stop(end);o2.stop(end);
+  BK.note={g:g,o:[o1,o2],t0:t,end:end,m:m};
+}
+function bassPeriod(){var m=$('bass').value;return m=='bar'?4:m=='beat'?1:2}
+/* start the bass on this slot; 'beats' is how long it lasts at the current tempo */
+function bassStart(r,add,beats,bl){bassCut(nextT);bassNote(bassMidi(r)+add,nextT,beats*bl-.03)}
+function bassBeat(bl){
+  var m=$('bass').value,b=rb.beat,r=BK.root>=0?BK.root:BK.want;if(r<0)return;
+  if(m=='bar'){if(b%4==0)bassStart(r,0,4,bl)}
+  else if(m=='b13'){if(b%2==0)bassStart(r,0,2,bl)}
+  else if(m=='rf'){if(b%2==0)bassStart(r,b%4==0?0:7,2,bl)}
+  else if(m=='beat')bassStart(r,0,1,bl);
+}
+/* a key change that lands in the middle of a bass pattern: the old note stops, the new root plays until the pattern's next beat */
+function bassNow(r,bl){
+  var per=bassPeriod(),pos=(rb.beat%per)+rb.n/rb.sb,left=per-pos;if(left<.05)left=per;
+  var add=$('bass').value=='rf'&&(rb.beat%4>=2)?7:0;bassStart(r,add,left,bl);
+}
+function bkWant(er){if(er!==BK.want){BK.want=er;BK.dirty=true}}
+function bkApply(t,bl){
+  var m=$('drone').value,r=BK.want,c=chord(),key=m+'|'+r+'|'+c.join(',');
+  BK.root=r;
+  if(m=='off'){droneOffAt(t);droneName(r,'off',[0],scaleS.value,false)}
+  else if(!dr.g){droneBuild(r,c,key,t,.05)}
+  else if(dr.k!=key)droneAt(r,t);
+  if(m!='off')droneName(r,m,c,scaleS.value,true);
+  if(bassOn()){var nn=BK.note;if(!nn||PE.pc(nn.m)!=PE.pc(bassMidi(r))){bassCut(t);if(!(rb.n==0&&rb.beat%bassPeriod()==0))bassNow(r,bl)}}
+}
+/* called for every slot the scheduler plays: decides when the backing follows the exercise */
+function bkStep(bl){
+  var mode=$('bkc').value;
+  if(!BK.dirty&&dr.g&&BK.want>=0&&dr.r!==BK.want&&$('drone').value!='off')BK.dirty=true;
+  if(BK.dirty&&BK.want>=0){
+    var ok=mode=='note'||(mode=='bar'&&rb.n==0&&rb.beat%4==0)||(mode=='beat13'&&rb.n==0&&rb.beat%2==0);
+    if(ok){bkApply(nextT,bl);BK.dirty=false}
+  }
+  if(rb.n==0&&bassOn())bassBeat(bl);
+}
+function bkShow(){
+  var t='',m=$('bkc').value;
+  if(m!='note')t='Drone and bass change together at the '+(m=='bar'?'next bar line':'next beat 1 or 3')+' after the key changes.';
+  if(t!==bkShown){bkShown=t;$('bkm').textContent=t}
+}
+var bkShown='';
+function droneOffAt(t){if(!dr.g)return;dr.g.gain.cancelScheduledValues(t);dr.g.gain.setTargetAtTime(0,t,.04);dr.o.forEach(function(o){try{o.stop(t+.4)}catch(x){}});dr.g=null;dr.o=[];dr.k='';dr.r=-1}
+function pxDrone(t){
+  var m=$('drone').value;
+  if(m=='off'){droneOffAt(t);droneName(curRoot(),'off',[0],scaleS.value,false);return}
+  var r=curRoot(),c=chord(),key=m+'|'+r+'|'+c.join(',');
+  if(!dr.g){droneBuild(r,c,key,t,.05)}else if(dr.k!=key){droneAt(r,t)}
+  droneName(r,m,c,scaleS.value,true);
+}
+function pxText(){
+  var s=pg.steps[pg.i],u=pgUnit(s);if(PX.rest&&u=='l')u='b';
+  if(PX.pre>0||!PX.began)return 'count-in';
+  if(u=='t')return pgFmt(Math.max(0,pgDur(s)-(ctx.currentTime-PX.startT))*1000);
+  if(u=='b'){var left=4*(+s.n||1)-(rb.beat+rb.n/rb.sb-PX.startBeat);return Math.max(1,Math.ceil(left/4-1e-9))+' bars left'}
+  return 'lap '+Math.min(+s.n||1,PX.laps+1)+' of '+(+s.n||1);
+}
+function pxBegin(oi,count){
+  var st=pg.steps[pg.order[oi]];pg.cont=true;pg.oi=oi;pg.i=pg.order[oi];pg.dur=pgDur(st)*1000;pg.left=pg.dur;pg.t0=performance.now();pg.msg='';
+  if(playing)stop();
+  PX={run:true,pre:count?4*(+$('pgci').value):0,began:false,startBeat:0,startT:0,laps:0,rest:st.t!='d',hasJump:false,jump:0};
+  if(st.t=='d'){pxLoad(st);setBpm(st.b0)}
+  ac();playing=true;tc=0;$('play').textContent='Pause';startTimer();updateDrone();tick();pgShow();
+}
+/* called by the scheduler at every slot; returns '' (keep going), 'swap' (the exercise just changed) or 'end' */
+function pxStep(){
+  var st=pg.steps[pg.i],u=pgUnit(st),n=pg.order.length,due=PX.hasJump;
+  if(PX.rest&&u=='l')u='b';
+  if(!due){
+    if(u=='t')due=nextT-PX.startT>=pgDur(st)-1e-6;
+    else if(u=='b')due=(rb.beat+rb.n/rb.sb-PX.startBeat)>=4*(+st.n||1)-1e-9;
+    else due=PX.laps>=(+st.n||1);
+  }
+  if(!due)return '';
+  var d=PX.hasJump?PX.jump:1,oi=pg.oi+d,wrap=false,lp=+$('pgr').value;
+  if(oi>=n){wrap=true;oi=0}if(oi<0)oi=0;
+  var fin=wrap&&!PX.hasJump&&lp!=0&&pg.round+1>=lp;
+  var tgt=fin?null:pg.steps[wrap?pgOrderAfter():pg.order[oi]];
+  var m=$('pgtr').value,ok=m=='now'?(fin||!tgt||tgt.t=='d'||rb.n==0):m=='beat13'?(rb.n==0&&rb.beat%2==0):(rb.n==0&&rb.beat%4==0);
+  if(!ok)return '';
+  if(fin){pgFinish();return 'end'}
+  if(wrap){pg.round++;pg.order=pgOrder();oi=0}
+  PX.hasJump=false;PX.jump=0;pg.oi=oi;pg.i=pg.order[oi];tgt=pg.steps[pg.i];
+  PX.laps=0;PX.startBeat=rb.beat+rb.n/rb.sb;PX.startT=nextT;pg.dur=pgDur(tgt)*1000;pg.t0=performance.now();
+  if(tgt.t=='d'){
+    PX.rest=false;pxLoad(tgt);setBpm(tgt.b0);sp=0;kpEnsure(0);if(rb.n==0)rb.sb=rbPick(rb.beat);BK.dirty=true;
+  }else{PX.rest=true}
+  return 'swap';
+}
+function pgOrderAfter(){return pg.order[0]}   /* only used to look at the first step of the next round */
+function pxRamp(bl){
+  var st=pg.steps[pg.i];if(PX.rest||st.t!='d'||+st.b0==+st.b1||pgUnit(st)=='l')return bl;
+  var f=pgUnit(st)=='t'?(nextT-PX.startT)/pgDur(st):(rb.beat+rb.n/rb.sb-PX.startBeat)/(4*(+st.n||1));
+  f=Math.min(1,Math.max(0,f));var nb=Math.round(+st.b0+(+st.b1-+st.b0)*f);
+  if(nb!=Math.round(+$('bpm').value)){setBpm(nb);return 60/nb}
+  return bl;
+}
+function pgEnter(i,first){
+  var s=pg.steps[i];pg.i=i;pg.msg='';pg.cont=false;pg.txt=null;pg.dur=pgDur(s)*1000;pg.left=pg.dur;pg.t0=performance.now();
+  if(s.t=='d'){
+    pgApply(s.snap||{});kpClr();kp.pair=null;kp.pick=0;if(typeof bx!='undefined'){bx.pair=null;bx.pick=0}
+    var sn=s.snap||{};if(sn._lp){loopA=sn._lp[0];loopB=sn._lp[1]}if(sn._kp)kp.pair=sn._kp.slice();if(sn._bp)bx.pair=sn._bp.slice();
+    $('mode').value='auto';$('play').disabled=false;
+    setBpm(s.b0);reset();
+    if(!playing)$('play').click();
+  }else if(playing)stop();
+  if(!first)pgChime(false);
+  pgShow();
+}
+function pgFinish(){pg.run=false;pg.paused=false;PX=null;pg.cont=false;pg.txt=null;if(playing)stop();pgChime(true);pg.msg='Program complete. Nice work.';$('pgrun').textContent='Start program';pgShow()}
+function pgStop(){pg.run=false;pg.paused=false;PX=null;pg.cont=false;pg.txt=null;if(playing)stop();$('pgrun').textContent='Start program';pg.msg='Program stopped';pgShow();setTimeout(function(){if(!pg.run){pg.msg='';pgShow()}},3000)}
+function pgNext(d){
+  if(pg.cont){
+    if(playing&&PX&&PX.run){PX.hasJump=true;PX.jump=d;return}
+    var n2=pg.order.length,oi=pg.oi+d;if(oi>=n2){pg.round++;var lp2=+$('pgr').value;if(lp2!=0&&pg.round>=lp2){pgFinish();return}pg.order=pgOrder();oi=0}if(oi<0)oi=0;pxBegin(oi,false);return
+  }
+  var n=pg.steps.length,i=pg.i+d;
+  if(i>=n){pg.round++;var lp=+$('pgr').value;if(lp!=0&&pg.round>=lp){pgFinish();return}i=0}
+  if(i<0)i=0;
+  pgEnter(i);
+}
+function pgTick(){
+  if(!pg.run||pg.paused)return;
+  if(pg.cont){if(PX&&PX.run&&ctx){pg.txt=pxText();pgShow()}return}
+  if(pg.i>=pg.steps.length){pgFinish();return}
+  var s=pg.steps[pg.i],left=pg.dur-(performance.now()-pg.t0);pg.left=left;
+  if(s.t=='d'&&s.b0!=s.b1){var f=Math.min(1,Math.max(0,1-left/pg.dur)),nb=Math.round(s.b0+(s.b1-s.b0)*f);if(nb!=Math.round(+$('bpm').value))setBpm(nb)}
+  if(left<=0){pgNext(1);return}
+  pgShow();
+}
+$('pgrun').onclick=function(){
+  if(pg.run){pgStop();return}
+  if(!pg.steps.length){pg.msg='Add at least one step first';pgShow();return}
+  var t=$('timer');if(t&&t.value!='0'){t.value='0';t.dispatchEvent(new Event('change',{bubbles:true}))}
+  if($('pgtr').value=='restart'&&pg.steps.some(function(x){return pgUnit(x)=='l'})){pg.msg='Steps measured in laps need "Keep the beat going". Pick one of those first.';pgShow();return}
+  ac();pg.run=true;pg.paused=false;pg.round=0;$('pgrun').textContent='Stop program';$('pgpz').textContent='Pause';
+  if($('pgtr').value!='restart'){pg.order=pgOrder();pxBegin(0,true)}else pgEnter(0,true);
+};
+$('pgpz').onclick=function(){
+  if(!pg.run)return;
+  if(!pg.paused){pg.paused=true;pg.left=pg.dur-(performance.now()-pg.t0);if(playing)stop();this.textContent='Resume'}
+  else if(pg.cont){pg.paused=false;this.textContent='Pause';pxBegin(pg.oi,false)}
+  else{pg.paused=false;pg.t0=performance.now()-(pg.dur-pg.left);if(pg.steps[pg.i].t=='d'&&!playing)$('play').click();this.textContent='Pause'}
+  pgShow();
+};
+$('pgnx').onclick=function(){if(pg.run){pg.paused=false;$('pgpz').textContent='Pause';pgNext(1)}};
+$('pgpv').onclick=function(){if(pg.run){pg.paused=false;$('pgpz').textContent='Pause';pgNext(pg.i>0&&performance.now()-pg.t0<3000?-1:0)}};
+var _ulk2=updateLk;updateLk=function(){
+  _ulk2();
+  if(!pg.run||!$('lk').classList.contains('on'))return;
+  var s=pg.steps[pg.i];if(!s)return;
+  $('lkt').textContent=(pg.txt!=null?pg.txt:pgFmt(pg.left))+'  \u00b7  '+(s.t=='d'?(s.label||'Drill'):'Rest');
+  $('lkc').textContent='Step '+(pg.i+1)+' of '+pg.steps.length+' \u00b7 '+$('bpm').value+' BPM';
+};
+(function(){
+  try{var d=JSON.parse(localStorage.getItem(PGK+'_draft')||'null');if(d&&d.steps){pg.steps=d.steps;if(d.loop!=null)$('pgr').value=String(d.loop);if(d.tr)$('pgtr').value=d.tr;if(d.ci)$('pgci').value=d.ci;if(d.sh)$('pgo').value=d.sh}}catch(e){}
+  pgFill('');pgRender();setInterval(pgTick,250);
+})();
+var SAVE=['lps','sm','sl','sw','ph','phc','bm','bw','bo','bxs','bsk','bl','kc','kn','kl','ko','kq','kd','kt','kr','root','scale','nps','frets','seq','dir','rn','rg','sub','mode','drone','dv','bpm','cu','timer','cvs','cvo','oj','pp','px','pi','pl','cum','pm3','pm4','bf','kcu','bass','bvol','bkc'],CHK=['bgp','tone','click'],VIS=['shn','shl','ats'];
+function save(){
+  try{var o={};SAVE.forEach(function(i){o[i]=$(i).value});CHK.forEach(function(i){o[i]=$(i).checked});VIS.forEach(function(i){o[i]=$(i).value});localStorage.setItem('scaleTrainer1',JSON.stringify(o))}catch(e){}
+}
+function load(){
+  try{
+    var o=JSON.parse(localStorage.getItem('scaleTrainer1')||'null');if(!o)return;
+    SAVE.forEach(function(i){var e=$(i);if(o[i]==null)return;if(e.tagName=='SELECT'){if([].some.call(e.options,function(x){return x.value==o[i]}))e.value=o[i]}else e.value=o[i]});
+    CHK.forEach(function(i){if(typeof o[i]=='boolean')$(i).checked=o[i]});
+    VIS.forEach(function(i){var e=$(i);if(o[i]!=null&&[].some.call(e.options,function(x){return x.value==o[i]}))e.value=o[i]});
+    $('bv').textContent=$('bpm').value+' BPM';$('play').disabled=$('mode').value=='tap';
+  }catch(e){}
+}
+PGDEF=pgSnap();
+load();
+document.addEventListener('change',save);document.addEventListener('input',save);
+build();lpUi();render();showTimer();
+
+</script>
+</body>
+</html>
